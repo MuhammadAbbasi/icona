@@ -82,7 +82,7 @@ const Footer = () => {
             <p>Subscribe to receive our latest updates and insights.</p>
             <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
               <input type="email" placeholder="Your email address" required />
-              <button type="submit">
+              <button type="submit" aria-label="Subscribe to newsletter">
                 <ArrowRight size={20} />
               </button>
             </form>

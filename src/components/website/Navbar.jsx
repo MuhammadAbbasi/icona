@@ -36,9 +36,8 @@ const Navbar = () => {
             src="/assets/logo.jpeg" 
             alt={SITE_CONFIG.company.name} 
             className="logo-img" 
-            width={48} 
+            width={48}
             height={48}
-            priority
           />
           <div className="logo-text-wrapper">
             <span className="logo-text-main">ICON</span>
