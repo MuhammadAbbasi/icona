@@ -1,11 +1,14 @@
 // Partner logos loaded from static public paths to avoid WebAssembly squoosh build errors
 
+const ESTABLISHED_YEAR = 1997;
+const YEARS_OF_EXCELLENCE = new Date().getFullYear() - ESTABLISHED_YEAR;
+
 export const SITE_CONFIG = {
 
   company: {
     name: "ICON Services",
-    established: 1997,
-    yearsOfExcellence: new Date().getFullYear() - 1997,
+    established: ESTABLISHED_YEAR,
+    yearsOfExcellence: YEARS_OF_EXCELLENCE,
     pecCategory: "PEC Category C-4 Registered Contractor",
     tagline: "Building Excellence with Purpose",
     subTagline: "From visionary design to turnkey construction, we bring your most ambitious projects to life.",
@@ -34,7 +37,7 @@ export const SITE_CONFIG = {
     { name: "Contact Us", href: "#contact" },
   ],
   milestones: [
-    { value: 29, suffix: "+", label: "Years of Experience" },
+    { value: YEARS_OF_EXCELLENCE, suffix: "+", label: "Years of Experience" },
     { value: 500, suffix: "+", label: "Projects Completed" },
     { value: 100, suffix: "%", label: "Client Satisfaction" },
   ],
