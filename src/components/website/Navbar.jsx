@@ -1,109 +1,60 @@
 'use client';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { SITE_CONFIG } from '@/config';
 
+const Logo = () => (
+  <a href="#top" className="flex items-center gap-2 text-lg font-bold tracking-tight">
+    <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-sm font-black text-primary-foreground">
+      I
+    </span>
+    <span>ICONA</span>
+  </a>
+);
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isMobileMenuOpen]);
+  const [open, setOpen] = useState(false);
+  const { nav, hero } = SITE_CONFIG;
 
   return (
-    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
-      <div className="container navbar-container">
-        <a href="#" className="logo-container">
-          <Image 
-            src="/assets/logo.jpeg" 
-            alt={SITE_CONFIG.company.name} 
-            className="logo-img" 
-            width={48}
-            height={48}
-          />
-          <div className="logo-text-wrapper">
-            <span className="logo-text-main">ICON</span>
-            <span className="logo-text-sub">Services</span>
-          </div>
-        </a>
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <Logo />
 
-        {/* Desktop Nav */}
-        <ul className="nav-links">
-          {SITE_CONFIG.navLinks.map((link) => (
-            <li key={link.name}>
-              <a href={link.href} className="nav-link">{link.name}</a>
-            </li>
+        <div className="hidden items-center gap-8 md:flex">
+          {nav.map((l) => (
+            <a key={l.href} href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              {l.name}
+            </a>
           ))}
-        </ul>
-
-        <div className="nav-actions">
-          <a href="/login" className="btn btn-secondary" style={{ marginRight: '0.75rem', padding: '0.5rem 1rem', fontSize: '0.85rem' }}>ERP Portal</a>
-          <a href="#contact" className="btn btn-primary quote-btn">Get a Quote</a>
-          
-          {/* Mobile Menu Toggle */}
-          <button 
-            className={`mobile-menu-btn ${isMobileMenuOpen ? 'menu-open' : ''}`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
         </div>
-      </div>
 
-      {/* Mobile Nav */}
-      <div className={`mobile-nav ${isMobileMenuOpen ? 'open' : ''}`}>
-        <ul className="mobile-nav-links">
-          {SITE_CONFIG.navLinks.map((link) => (
-            <li key={link.name}>
-              <a 
-                href={link.href} 
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.name}
+        <div className="hidden md:block">
+          <a href={hero.primaryCta.href} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+            {hero.primaryCta.label}
+          </a>
+        </div>
+
+        <button className="md:hidden" onClick={() => setOpen((v) => !v)} aria-label={open ? 'Close menu' : 'Open menu'}>
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </nav>
+
+      {open && (
+        <div className="border-t border-border bg-background md:hidden">
+          <div className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-4">
+            {nav.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="py-2 text-sm text-muted-foreground hover:text-foreground">
+                {l.name}
               </a>
-            </li>
-          ))}
-          <li>
-            <a 
-              href="/login" 
-              className="btn btn-secondary w-full text-center mt-4"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              ERP Portal
+            ))}
+            <a href={hero.primaryCta.href} onClick={() => setOpen(false)} className="mt-2 rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground">
+              {hero.primaryCta.label}
             </a>
-          </li>
-          <li>
-            <a 
-              href="#contact" 
-              className="btn btn-primary w-full text-center mt-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Get a Quote
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 

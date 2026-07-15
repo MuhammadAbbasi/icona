@@ -1,39 +1,43 @@
-# ICONA - ICON Services Website
+# ICONA - Website
 
-Standalone Next.js 14 (App Router) marketing site for ICON Services, extracted
-from the ICON CRM. Fully presentational: no database, auth, or CRM coupling.
+Marketing website for **ICONA**, a software house providing **ERP and CRM to
+small and medium construction companies**. The product it markets is the
+construction ERP/CRM (BOQ, project control, finance, labour, subcontractors,
+investors, mobile app). Fully presentational site: no database, auth, or backend.
 
 ## Stack
 - Next.js 14.2 (App Router) + React 18
-- Tailwind CSS 3.4 + `tailwindcss-animate`
+- Tailwind CSS 3.4 (semantic tokens in `globals.css`; orange primary accent)
 - `lucide-react` icons
 - Contact form -> Formspree (client-side, id in `src/config.js`)
-- Fonts: Montserrat / Roboto / Inter (next/font)
+- Font: Inter (next/font)
 
 ## Structure
 ```
-src/app/layout.tsx      root layout: fonts + globals.css + website.css
-src/app/page.tsx        the single landing page (all sections)
-src/app/globals.css     Tailwind base + CSS variables
-src/app/website.css     website-specific styling
-src/config.js           SITE_CONFIG: all content/data (company, projects, etc.)
-src/components/website/  11 section components
-public/assets/          images (hero, map, logos, project photos)
+src/app/layout.tsx       root layout: font + globals.css + SoftwareApplication JSON-LD
+src/app/page.tsx         the single landing page (composes all sections)
+src/app/globals.css      Tailwind base + CSS variables (light/dark tokens)
+src/app/sitemap.ts       sitemap (domain from config)
+src/app/robots.ts        robots (domain from config)
+src/config.js            SITE_CONFIG: ALL content/data
+src/components/website/   section components (Navbar, Hero, Modules, MobileApp,
+                          HowItWorks, Pricing, Testimonials, Contact, Footer)
+public/favicon.svg       logo mark
 ```
 
 ## Content
-Everything editable lives in `src/config.js` (company info, services,
-projects, partners, testimonials, contact, Formspree id, socials).
+Everything editable lives in `src/config.js` (company, modules, mobile, how-it-
+works, pricing, testimonials, contact, Formspree id). Components are pure
+presentational readers of `SITE_CONFIG`.
 
-## Build note (IMPORTANT)
-This folder is inside Google Drive (`G:\M`). Do NOT run `npm install` here:
-Drive will churn syncing `node_modules`. Install/build on a local disk (e.g.
-copy to a C: path, `npm install && npm run build`) and deploy the output.
-`node_modules` and `.next` are gitignored.
+## Build & run
+`npm run dev`, `npm run build`, `npm run start`, `npm run lint`.
+`node_modules` and `.next` are gitignored. If the local drive throws `EPERM`
+on `.next` during build, delete `.next` and retry, or build on a C: path.
 
-## 5-phase plan
-1. **Scaffold + migrate** (done) - standalone project, moved website + assets.
-2. Content accuracy - verify copy, project->image mapping, socials, Formspree.
-3. SEO + polish - sitemap, robots, LocalBusiness JSON-LD, a11y, responsive.
-4. Performance + hardening - next/image, Lighthouse, analytics.
-5. Deploy - build off-Drive, ship to host, iconservices.pk.
+## Deploy
+Target: Vercel (auto-detects Next.js; keeps headers + image optimization).
+Import the repo at vercel.com/new as a **new, separate** project.
+
+## Pending
+See `todo.md` (real domain, pricing, testimonials, contact inbox, socials).

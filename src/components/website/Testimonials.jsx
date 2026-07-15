@@ -1,56 +1,27 @@
-'use client';
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Quote } from 'lucide-react';
 import { SITE_CONFIG } from '@/config';
 
 const Testimonials = () => {
-  const [current, setCurrent] = useState(0);
-  const items = SITE_CONFIG.testimonials;
-
-  const prev = () => setCurrent((c) => (c - 1 + items.length) % items.length);
-  const next = () => setCurrent((c) => (c + 1) % items.length);
-
-  const { quote, author, designation } = items[current];
+  const { testimonials } = SITE_CONFIG;
 
   return (
-    <section className="section testimonials">
-      <div className="container">
-        <p className="section-eyebrow text-center">Client Stories</p>
-        <h2 className="section-title">What Our Clients Say</h2>
+    <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">Why teams switch</p>
+        <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Built around real site workflows</h2>
+      </div>
 
-        <div className="testimonial-slider">
-          <button className="slider-btn prev" onClick={prev} aria-label="Previous">
-            <ChevronLeft size={24} />
-          </button>
-
-          <div className="testimonial-content">
-            <svg className="quote-icon" width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-            </svg>
-
-            <p className="testimonial-quote">"{quote}"</p>
-
-            <div className="testimonial-author">
-              <h4>{author}</h4>
-              <p>{designation}</p>
-            </div>
-
-            <div className="slider-dots">
-              {items.map((_, i) => (
-                <button
-                  key={i}
-                  className={`dot${i === current ? ' active' : ''}`}
-                  onClick={() => setCurrent(i)}
-                  aria-label={`Go to testimonial ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <button className="slider-btn next" onClick={next} aria-label="Next">
-            <ChevronRight size={24} />
-          </button>
-        </div>
+      <div className="mt-14 grid gap-6 md:grid-cols-3">
+        {testimonials.map((t, i) => (
+          <figure key={i} className="flex flex-col rounded-xl border border-border bg-card p-6">
+            <Quote size={22} className="text-primary/40" />
+            <blockquote className="mt-4 flex-1 text-sm leading-relaxed">{t.quote}</blockquote>
+            <figcaption className="mt-6 border-t border-border pt-4">
+              <div className="text-sm font-semibold">{t.author}</div>
+              <div className="text-xs text-muted-foreground">{t.role}</div>
+            </figcaption>
+          </figure>
+        ))}
       </div>
     </section>
   );

@@ -1,260 +1,199 @@
-// Partner logos loaded from static public paths to avoid WebAssembly squoosh build errors
+// ICONA - software house providing ERP + CRM to small and medium construction companies.
+// All site content lives here so components stay presentational.
 
-const ESTABLISHED_YEAR = 1997;
-const YEARS_OF_EXCELLENCE = new Date().getFullYear() - ESTABLISHED_YEAR;
+const YEAR = new Date().getFullYear();
 
 export const SITE_CONFIG = {
-
   company: {
-    name: "ICON Services",
-    established: ESTABLISHED_YEAR,
-    yearsOfExcellence: YEARS_OF_EXCELLENCE,
-    pecCategory: "PEC Category C-4 Registered Contractor",
-    tagline: "Building Excellence with Purpose",
-    subTagline: "From visionary design to turnkey construction, we bring your most ambitious projects to life.",
+    name: 'ICONA',
+    tagline: 'The ERP + CRM built for construction',
+    subTagline:
+      'ICONA gives small and medium construction firms one connected system, from BOQ and budgeting to labour, subcontractors, and cash flow, on web and mobile.',
+    domain: 'https://icona.app', // TODO: set the real domain
   },
-  images: {
-    hero: "/assets/hero_architecture_premium.png",
-    legacy: "/assets/NewTechArchitecturalDesign.jpeg",
+
+  nav: [
+    { name: 'Modules', href: '#modules' },
+    { name: 'Mobile', href: '#mobile' },
+    { name: 'How it works', href: '#how' },
+    { name: 'Pricing', href: '#pricing' },
+    { name: 'Contact', href: '#contact' },
+  ],
+
+  hero: {
+    badge: 'ERP + CRM for construction SMEs',
+    title: 'Run your whole construction business in one place',
+    highlight: 'one place',
+    subtitle:
+      'Stop stitching together spreadsheets. ICONA unifies estimating, project control, finance, labour, and subcontractors into a single ERP and CRM built for how construction firms actually work.',
+    primaryCta: { label: 'Book a demo', href: '#contact' },
+    secondaryCta: { label: 'Explore modules', href: '#modules' },
   },
-  contact: {
-    phone: "+92 321 2379862",
-    email: "muhammadabbasi.llm@gmail.com",
-    address: "Office number 312, City Center, Shahrah Faisal, Karachi",
-    // Paste your Formspree Form ID here (e.g. "mqkrpnye") to receive real emails.
-    // If empty, the form will run in high-fidelity simulated mode.
-    formspreeId: "xykojjow",
-    socials: {
-      linkedin: "https://linkedin.com/iconserviceskhi",
-      instagram: "https://instagram.com/iconserviceskhi",
-      facebook: "https://facebook.com/iconserviceskhi",
-    }
+
+  valueProps: [
+    { label: 'ERP + CRM, unified' },
+    { label: '7 core modules' },
+    { label: 'Web + mobile' },
+    { label: 'Built for construction' },
+  ],
+
+  modules: [
+    {
+      group: 'ERP',
+      icon: 'Layers',
+      title: 'BOQ & Estimation',
+      description:
+        'Hierarchical bills of quantities (Project to Domain to Task to priced line items) with automatic amount rollups and Excel or template import.',
+    },
+    {
+      group: 'ERP',
+      icon: 'FolderKanban',
+      title: 'Project Control',
+      description:
+        'A structured project hierarchy with revisions, so every change to scope and price is tracked and never lost.',
+    },
+    {
+      group: 'ERP',
+      icon: 'Wallet',
+      title: 'Finance & Cash Flow',
+      description:
+        'Record transactions, compare budget against actuals, and see cash flow per project and across the company.',
+    },
+    {
+      group: 'ERP',
+      icon: 'HardHat',
+      title: 'Subcontractors',
+      description:
+        'Maintain a subcontractor registry and assign them to work at a fixed contract price, with clear accountability.',
+    },
+    {
+      group: 'ERP',
+      icon: 'ClipboardList',
+      title: 'Labour & Attendance',
+      description:
+        'Daily labour logs, attendance sheets, and site-visit records captured from the field, not from memory.',
+    },
+    {
+      group: 'ERP',
+      icon: 'Landmark',
+      title: 'Investors & Lenders',
+      description:
+        'Track lenders and investors and the funding tied to each project, so financing is always visible.',
+    },
+    {
+      group: 'CRM',
+      icon: 'Users',
+      title: 'Clients & Leads',
+      description:
+        'Manage clients, enquiries, and proposals alongside the projects they belong to, in one shared record.',
+    },
+  ],
+
+  mobile: {
+    title: 'Your site office, in your pocket',
+    subtitle:
+      'Field teams do not sit at a desk. The ICONA mobile app puts the day-to-day site workflow on Android.',
+    points: [
+      'Log labour and mark attendance on site',
+      'Record site visits with notes and photos',
+      'Browse the live project hierarchy and BOQ',
+      'Everything syncs back to the web ERP',
+    ],
   },
-  navLinks: [
-    { name: "About Us", href: "#about" },
-    { name: "Our Services", href: "#services" },
-    { name: "Our Projects", href: "#projects" },
-    { name: "Contact Us", href: "#contact" },
+
+  how: [
+    {
+      step: '01',
+      title: 'Import your BOQ',
+      description: 'Bring projects in via Excel or templates. ICONA builds the hierarchy and amount rollups for you.',
+    },
+    {
+      step: '02',
+      title: 'Run the site',
+      description: 'Log labour, attendance, subcontractors, and site visits as the work happens, on web or mobile.',
+    },
+    {
+      step: '03',
+      title: 'Control the money',
+      description: 'Record transactions and watch budget versus actual on every project in real time.',
+    },
+    {
+      step: '04',
+      title: 'Decide with clarity',
+      description: 'Revisions and reports keep owners, investors, and lenders aligned on where each project stands.',
+    },
   ],
-  milestones: [
-    { value: YEARS_OF_EXCELLENCE, suffix: "+", label: "Years of Experience" },
-    { value: 500, suffix: "+", label: "Projects Completed" },
-    { value: 100, suffix: "%", label: "Client Satisfaction" },
+
+  // TODO: confirm real pricing. Placeholder tiers.
+  pricing: [
+    {
+      name: 'Starter',
+      price: 'Custom',
+      tagline: 'For a single small firm getting organised',
+      features: ['Up to 5 active projects', 'BOQ, project control & finance', '3 team members', 'Email support'],
+      cta: 'Book a demo',
+      featured: false,
+    },
+    {
+      name: 'Growth',
+      price: 'Custom',
+      tagline: 'For growing contractors running multiple sites',
+      features: [
+        'Unlimited projects',
+        'All ERP modules + CRM',
+        'Mobile app for field teams',
+        'Priority support & onboarding',
+      ],
+      cta: 'Book a demo',
+      featured: true,
+    },
+    {
+      name: 'Enterprise',
+      price: 'Custom',
+      tagline: 'For established firms that need it all',
+      features: ['Everything in Growth', 'Investor & lender registry', 'Custom onboarding & training', 'Dedicated support'],
+      cta: 'Talk to us',
+      featured: false,
+    },
   ],
-  services: [
-    {
-      id: "design",
-      title: "Architectural Design",
-      description: "Custom architectural and structural planning tailored to your visionary needs.",
-      icon: "PenTool", // Represents a Lucide icon
-    },
-    {
-      id: "construction",
-      title: "Construction Management",
-      description: "High-quality execution and robust site management ensuring precision at every step.",
-      icon: "HardHat",
-    },
-    {
-      id: "turnkey",
-      title: "Turnkey Solutions",
-      description: "Seamless, ready-to-use project delivery from the initial concept to the final keys.",
-      icon: "Key",
-    }
-  ],
-  projects: [
-    {
-      id: 1,
-      title: "DHA City Farmhouse & Pool",
-      category: "Residential",
-      image: "/assets/extracted/image_p14_1.jpeg",
-      location: "Karachi",
-      description: "Exquisite farmhouse construction with standard luxury swimming pool in DHA City.",
-      client: "DHA City Karachi"
-    },
-    {
-      id: 2,
-      title: "Bank Islami - Raju Khanani Branch",
-      category: "Commercial",
-      image: "/assets/extracted/image_p17_1.jpeg",
-      location: "Sindh",
-      description: "Full-scope commercial construction and premium branch interior layout.",
-      client: "Bank Islami Pakistan"
-    },
-    {
-      id: 3,
-      title: "Bank Islami - Head Office (9th Floor)",
-      category: "Commercial",
-      image: "/assets/extracted/image_p21_1.jpeg",
-      location: "Karachi",
-      description: "High-end executive corporate interior design and execution proposal.",
-      client: "Bank Islami Pakistan"
-    },
-    {
-      id: 4,
-      title: "Larkana Luxury Bungalow",
-      category: "Residential",
-      image: "/assets/extracted/image_p28_1.jpeg",
-      location: "Larkana",
-      description: "Modern architectural planning, design, and turnkey build of a premium bungalow.",
-      client: "N.I.C. Group"
-    },
-    {
-      id: 5,
-      title: "Gwadar Coastal Bungalow",
-      category: "Residential",
-      image: "/assets/extracted/image_p32_7.jpeg",
-      location: "Gwadar",
-      description: "Elite architectural structure, construction, and full luxury furnishing.",
-      client: "Private Client"
-    },
-    {
-      id: 6,
-      title: "DHA Phase 8 Bungalow Renovation",
-      category: "Residential",
-      image: "/assets/extracted/image_p34_1.jpeg",
-      location: "Karachi",
-      description: "Full structural renovation and elegant interior upgrade of a DHA Phase 8 bungalow.",
-      client: "Private Investor"
-    },
-    {
-      id: 7,
-      title: "DOHS / Generals Society",
-      category: "Residential",
-      image: "/assets/extracted/image_p44_1.jpeg",
-      location: "Karachi",
-      description: "General contracting, construction, design & build with premium materials.",
-      client: "DHA Karachi"
-    },
-    {
-      id: 8,
-      title: "Murtaza Flour Mills Head Office",
-      category: "Commercial",
-      image: "/assets/extracted/image_p40_1.jpeg",
-      location: "Karachi",
-      description: "Corporate office interior design and construction for Ashrafi Aata HQ.",
-      client: "Murtaza Flour Mills"
-    },
-    {
-      id: 9,
-      title: "Maqbool & Co. Industrial Project",
-      category: "Commercial",
-      image: "/assets/extracted/image_p37_1.jpeg",
-      location: "Karachi",
-      description: "Heavy-duty commercial structure and robust infrastructure execution.",
-      client: "Maqbool & Co."
-    }
-  ],
-  cityFootprint: [
-    {
-      id: "karachi",
-      cityName: "Karachi",
-      projectCount: 80,
-      x: 36, // south coast, matches printed 'Karachi' label
-      y: 82,
-      commercial: 10,
-      residential: 70,
-      highlights: [
-        "Bank Islami Head Office Interior & Planning",
-        "DHA Phase 8 Luxury Turnkey Bungalow",
-        "Murtaza Flour Mills Executive HQ",
-        "Maqbool & Co. Industrial Layout & Execution"
-      ]
-    },
-    {
-      id: "gwadar",
-      cityName: "Gwadar",
-      projectCount: 16,
-      x: 15, // southwestern coastal point
-      y: 80,
-      commercial: 4,
-      residential: 12,
-      highlights: [
-        "Gwadar Coastal Luxury Bungalow Construction",
-        "Port-View Commercial Infrastructure Outposts"
-      ]
-    },
-    {
-      id: "hyderabad",
-      cityName: "Hyderabad",
-      projectCount: 8,
-      x: 42, // inland Sindh, northeast of Karachi
-      y: 78,
-      commercial: 6,
-      residential: 2,
-      highlights: [
-        "Bank Islami - Raju Khanani Branch Construction",
-        "Sindh Agriculture University Complex Planning"
-      ]
-    },
-    {
-      id: "larkana",
-      cityName: "Larkana",
-      projectCount: 18,
-      x: 40, // northern Sindh, along river veins
-      y: 66,
-      commercial: 4,
-      residential: 14,
-      highlights: [
-        "Larkana Luxury Bungalow Engineering & Turnkey Build",
-        "Northern Sindh Government Infrastructure & Layout"
-      ]
-    },
-    {
-      id: "lahore",
-      cityName: "Lahore",
-      projectCount: 5,
-      x: 71, // Eastern Punjab bulge, matches printed 'Lahore' label
-      y: 43.5,
-      commercial: 2,
-      residential: 3,
-      highlights: [
-        "Punjab Corporate Executive Offices Execution",
-        "Model Town Residential Luxury Estates Design & Build"
-      ]
-    },
-    {
-      id: "islamabad",
-      cityName: "Islamabad",
-      projectCount: 12,
-      x: 62.5, // Northern region, matches printed 'Islamabad' label
-      y: 33.5,
-      commercial: 4,
-      residential: 8,
-      highlights: [
-        "Capital Commercial Hub Architectural Foundations",
-        "Margalla Hills Premium Residential Estate Development"
-      ]
-    }
-  ],
-  processSteps: [
-    { number: "01", title: "Discovery & Analysis", description: "We understand your vision and analyze site potential." },
-    { number: "02", title: "Design & Strategy", description: "Our architects draft visionary blueprints and strategic plans." },
-    { number: "03", title: "Construction & Execution", description: "We bring the design to life with unparalleled craftsmanship." },
-    { number: "04", title: "Final Delivery", description: "A seamless handover of your completed, ready-to-use project." },
-  ],
+
+  // TODO: replace with real, attributed testimonials.
   testimonials: [
     {
-      quote: "ICON Services transformed our conceptual ideas into a stunning corporate reality. Their turnkey approach saved us immense time.",
-      author: "Irshad Ahmed Abbasi",
-      designation: "Managing Director, NIC",
+      quote:
+        'We priced a full BOQ in an afternoon instead of a week, and the rollups just added up. No more broken spreadsheet formulas.',
+      author: 'Project Director',
+      role: 'Mid-size contracting firm',
     },
     {
-      quote: "The precision and architectural elegance of our new headquarters is unmatched. 29 years of legacy truly shows in their work.",
-      author: "Suhail Ahmed",
-      designation: "Executive Director, Adamjee Durabuilt",
+      quote:
+        'For the first time our site attendance and subcontractor costs land in the same place as the budget. We catch overruns early now.',
+      author: 'Operations Manager',
+      role: 'Residential builder',
     },
     {
-      quote: "From discovery to final delivery, the team at ICON was professional, transparent, and absolutely brilliant.",
-      author: "Farhan Khan",
-      designation: "Project Lead, DHA City",
-    }
+      quote:
+        'The mobile app means our supervisors log labour from the site itself. The head office finally sees reality, not last week.',
+      author: 'Managing Partner',
+      role: 'General contractor',
+    },
   ],
-  partners: [
-    { name: "Bank Islami Pakistan", logo: "/assets/Bankislami-Logo.png", industry: "Banking Partner" },
-    { name: "United Bank Limited (UBL)", logo: "/assets/UBL-Logo.svg", industry: "Banking Client" },
-    { name: "Adamjee Durabuilt", logo: "/assets/Adamjee-logo.jpg", industry: "Corporate / Interior" },
-    { name: "Murtaza Flour Mills", industry: "Industrial Client" },
-    { name: "Maqbool & Co.", industry: "Infrastructure" },
-    { name: "DHA City Karachi", logo: "/assets/DCK-LOGO.png", industry: "Residential Authority" }
-  ]
+
+  contact: {
+    heading: 'Book a demo',
+    subheading: 'See ICONA on your own projects. Tell us about your firm and we will set up a walkthrough.',
+    email: 'hello@icona.app', // TODO: set real inbox
+    phone: '+92 321 2379862', // TODO: confirm
+    formspreeId: 'xykojjow', // TODO: confirm this Formspree inbox belongs to ICONA
+    socials: {
+      linkedin: '', // TODO
+      instagram: '', // TODO
+      facebook: '', // TODO
+    },
+  },
+
+  footer: {
+    blurb: 'ERP and CRM software for small and medium construction companies. One system for estimating, sites, and finance.',
+    year: YEAR,
+  },
 };
