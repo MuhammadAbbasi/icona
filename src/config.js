@@ -129,7 +129,8 @@ export const SITE_CONFIG = {
   pricing: [
     {
       name: 'Starter',
-      price: 'Custom',
+      price: '$25',
+      cadence: '/mo',
       tagline: 'For a single small firm getting organised',
       features: ['Up to 5 active projects', 'BOQ, project control & finance', '3 team members', 'Email support'],
       cta: 'Book a demo',
@@ -137,7 +138,8 @@ export const SITE_CONFIG = {
     },
     {
       name: 'Growth',
-      price: 'Custom',
+      price: '$50',
+      cadence: '/mo',
       tagline: 'For growing contractors running multiple sites',
       features: [
         'Unlimited projects',
@@ -150,7 +152,8 @@ export const SITE_CONFIG = {
     },
     {
       name: 'Enterprise',
-      price: 'Custom',
+      price: '$75',
+      cadence: '/mo',
       tagline: 'For established firms that need it all',
       features: ['Everything in Growth', 'Investor & lender registry', 'Custom onboarding & training', 'Dedicated support'],
       cta: 'Talk to us',

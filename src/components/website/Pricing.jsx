@@ -28,7 +28,10 @@ const Pricing = () => {
               )}
               <h3 className="text-lg font-semibold">{tier.name}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{tier.tagline}</p>
-              <p className="mt-6 text-3xl font-extrabold">{tier.price}</p>
+              <p className="mt-6 text-3xl font-extrabold">
+                {tier.price}
+                {tier.cadence && <span className="text-base font-medium text-muted-foreground">{tier.cadence}</span>}
+              </p>
 
               <ul className="mt-6 flex-1 space-y-3">
                 {tier.features.map((f) => (
