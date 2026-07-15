@@ -10,6 +10,7 @@ export const SITE_CONFIG = {
     subTagline:
       'ICONA gives small and medium construction firms one connected system, from BOQ and budgeting to labour, subcontractors, and cash flow, on web and mobile.',
     domain: 'https://icona.app', // TODO: set the real domain
+    appUrl: 'https://app.icona.app', // TODO: set the real ERP app URL (where clients log in)
   },
 
   nav: [

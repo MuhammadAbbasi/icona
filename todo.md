@@ -8,6 +8,19 @@ All are marked `TODO` in `src/config.js`.
       real domain; it feeds metadata, canonical, sitemap, and robots.
 - [ ] Logo - currently a text mark + `public/favicon.svg`. Replace with the real
       ICONA logo if there is one.
+- [ ] **App URL** - `company.appUrl` is `https://app.icona.app` (placeholder).
+      The navbar "Client login" links to `${appUrl}/login`. Set the real ERP URL.
+
+## Auth / onboarding
+- [x] Client login link added to the navbar (desktop + mobile) -> ERP `/login`.
+- [ ] **Signup + guided onboarding wizard** (planned, "later"): a custom signup
+      that provisions a company and walks the user through org details, projects,
+      the Domain -> Task -> Subtask hierarchy, employees, finances, and
+      admin/manager/employee data rights, as a guided tour + profile setup. This
+      is a PRODUCT feature (provisions a tenant), so it belongs in the ERP behind
+      the SaaS tenancy work (Wave 1), not the marketing site. The site will just
+      link to it. See docs/saas-transformation-plan.md (billing-onboarding /
+      config-platform).
 
 ## Pricing (placeholder tiers)
 - [ ] `pricing[]` uses "Custom" prices and generic feature lists. Set real tiers

@@ -14,7 +14,8 @@ const Logo = () => (
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
-  const { nav, hero } = SITE_CONFIG;
+  const { nav, hero, company } = SITE_CONFIG;
+  const loginUrl = `${company.appUrl}/login`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
@@ -29,7 +30,10 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-4 md:flex">
+          <a href={loginUrl} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            Client login
+          </a>
           <a href={hero.primaryCta.href} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
             {hero.primaryCta.label}
           </a>
@@ -48,6 +52,9 @@ const Navbar = () => {
                 {l.name}
               </a>
             ))}
+            <a href={loginUrl} className="py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+              Client login
+            </a>
             <a href={hero.primaryCta.href} onClick={() => setOpen(false)} className="mt-2 rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground">
               {hero.primaryCta.label}
             </a>
