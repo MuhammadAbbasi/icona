@@ -4,7 +4,9 @@
   "private": true,
   "description": "ICONA ERP & CRM SaaS for Construction SMEs",
   "scripts": {
+    "predev": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
     "dev": "next dev",
+    "stop": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
