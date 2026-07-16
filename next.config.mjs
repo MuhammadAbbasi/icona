@@ -40,7 +40,8 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            // microphone=(self): required by the ICONA Assistant's voice input (Web Speech API)
+            value: 'camera=(), microphone=(self), geolocation=(), interest-cohort=()',
           },
           {
             key: 'Strict-Transport-Security',

@@ -4,7 +4,7 @@
   "private": true,
   "description": "ICONA ERP & CRM SaaS for Construction SMEs",
   "scripts": {
-    "predev": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
+    "predev": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; if (Test-Path .next) { Remove-Item -Recurse -Force .next }; exit 0\"",
     "dev": "next dev",
     "stop": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
     "build": "next build",
@@ -13,10 +13,11 @@
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "test": "node --import tsx --test src/lib/utils.test.ts src/lib/entitlements.test.ts",
+    "test": "node --import tsx --test src/lib/utils.test.ts src/lib/entitlements.test.ts src/lib/finance.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.0",
     "@prisma/client": "^5.16.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -39,6 +40,7 @@
     "react": "^18",
     "react-dom": "^18",
     "recharts": "^2.12.7",
+    "resend": "^6.17.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "0.18.5",

@@ -180,6 +180,20 @@ export function computeFinancials(
   };
 }
 
+/**
+ * What a CLIENT may see of a project's finances: their own payments and dues
+ * only. Internal costs, drawings, loans and margins are never exposed to
+ * clients — leaking them would reveal the contractor's spend and profit.
+ */
+export function clientFinanceView(f: ProjectFinancials) {
+  return {
+    budget: f.budget,
+    received: f.received,
+    receivable: f.receivable,
+    collectionPct: f.collectionPct,
+  };
+}
+
 // ── Company overheads (G&A) ──────────────────────────────────────────────────
 // Operating costs that belong to a MAIN company, not to any single project:
 // office rent, utilities, marketing, prospecting travel, staff salaries.
