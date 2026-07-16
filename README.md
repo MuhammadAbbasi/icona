@@ -7,28 +7,33 @@ investors, mobile app). Fully presentational site: no database, auth, or backend
 
 ## Stack
 - Next.js 14.2 (App Router) + React 18
-- Tailwind CSS 3.4 (semantic tokens in `globals.css`; orange primary accent)
+- Tailwind CSS 3.4 (semantic tokens in `globals.css`; orange primary, dark
+  navy `ink` tokens for hero mock / contact band / footer)
 - `lucide-react` icons
 - Contact form -> Formspree (client-side, id in `src/config.js`)
-- Font: Inter (next/font)
+- Fonts: Inter (body) + Space Grotesk (display), both via next/font
 
 ## Structure
 ```
-src/app/layout.tsx       root layout: font + globals.css + SoftwareApplication JSON-LD
+src/app/layout.tsx       root layout: fonts + globals.css + SoftwareApplication JSON-LD
 src/app/page.tsx         the single landing page (composes all sections)
-src/app/globals.css      Tailwind base + CSS variables (light/dark tokens)
+src/app/globals.css      Tailwind base + CSS variables + reveal/hover utilities
 src/app/sitemap.ts       sitemap (domain from config)
 src/app/robots.ts        robots (domain from config)
-src/config.js            SITE_CONFIG: ALL content/data
-src/components/website/   section components (Navbar, Hero, Modules, MobileApp,
-                          HowItWorks, Pricing, Testimonials, Contact, Footer)
+src/config.js            SITE_CONFIG: ALL content/data + resolveCta/annualPrice helpers
+src/components/website/   section components (Navbar, Hero, Modules, ProductPreview,
+                          MobileApp, HowItWorks, Pricing, Testimonials, Guides,
+                          Faq, Contact, Footer) + shared Reveal, SectionHeader
 public/favicon.svg       logo mark
 ```
 
 ## Content
-Everything editable lives in `src/config.js` (company, modules, mobile, how-it-
-works, pricing, testimonials, contact, Formspree id). Components are pure
-presentational readers of `SITE_CONFIG`.
+Everything editable lives in `src/config.js` (company, modules, product mocks'
+captions, mobile, how-it-works, billing + pricing tiers with limits, guides,
+FAQ, testimonials, contact, Formspree id). Components are pure presentational
+readers of `SITE_CONFIG`. Pricing: monthly USD prices per tier; annual billing
+= `12 - billing.annualMonthsFree` months (2 months free). CTA hrefs `'signup'`
+and `'login'` resolve into the ERP app via `resolveCta()`.
 
 ## Build & run
 `npm run dev`, `npm run build`, `npm run start`, `npm run lint`.

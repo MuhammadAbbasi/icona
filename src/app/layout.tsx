@@ -1,11 +1,17 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
 import { SITE_CONFIG } from '@/config';
 import './globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
   display: 'swap',
 });
 
@@ -22,9 +28,11 @@ export const metadata: Metadata = {
     'construction ERP',
     'construction CRM',
     'BOQ software',
-    'construction management software',
+    'construction management software Pakistan',
     'subcontractor management',
+    'labour attendance software',
     'construction accounting software',
+    'construction ledger software',
     'ICONA',
   ],
   alternates: { canonical: company.domain },
@@ -51,14 +59,21 @@ const jsonLd = {
   operatingSystem: 'Web, Android',
   description: company.subTagline,
   url: company.domain,
-  offers: { '@type': 'Offer', category: 'SaaS' },
+  offers: SITE_CONFIG.pricing.map((tier) => ({
+    '@type': 'Offer',
+    category: 'SaaS',
+    name: tier.name,
+    price: tier.monthly,
+    priceCurrency: 'USD',
+  })),
   publisher: { '@type': 'Organization', name: 'ICONA', url: company.domain },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

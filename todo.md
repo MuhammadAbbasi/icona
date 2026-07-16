@@ -22,9 +22,14 @@ All are marked `TODO` in `src/config.js`.
       link to it. See docs/saas-transformation-plan.md (billing-onboarding /
       config-platform).
 
-## Pricing (placeholder tiers)
-- [ ] `pricing[]` uses "Custom" prices and generic feature lists. Set real tiers
-      and prices, or keep "Custom" + demo CTA intentionally.
+## Pricing
+- [x] Tiers set: Starter $25 / Growth $50 / Enterprise $75 per month, with plan
+      limits (5/25/unlimited projects; 3/15/unlimited members) and an annual
+      toggle (2 months free = pay 10 months).
+- [ ] Confirm the plan limits match what the ERP will actually enforce
+      (upgrade-on-limit is a product feature; see the SaaS tenancy work).
+- [ ] `company.signupPath` (`/signup`) - confirm once the ERP signup wizard
+      ships; the site's "Start now" CTAs point at `${appUrl}/signup`.
 
 ## Testimonials (placeholder)
 - [ ] `testimonials[]` are generic, unattributed examples. Replace with real,

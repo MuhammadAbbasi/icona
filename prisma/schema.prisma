@@ -1,0 +1,1034 @@
+generator client {
+  provider      = "prisma-client-js"
+  // The in-process "library" engine panics ("timer has gone away") on this cPanel
+  // host; the out-of-process "binary" engine is stable there. rhel targets added
+  // because the host is RHEL/CloudLinux-based (Prisma can't auto-detect the distro).
+  engineType    = "binary"
+  binaryTargets = ["native", "debian-openssl-1.0.x", "debian-openssl-3.0.x", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String       @id @default(cuid())
+  name            String
+  email           String       @unique
+  password        String
+  role            String       @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE | CLIENT
+  status          String       @default("ACTIVE")   // ACTIVE | INACTIVE
+  emailVerified   DateTime?    // set when the signup verification link is clicked; null = login blocked
+  salary          Float?       // monthly salary (employees) OR agreed amount (freelancers)
+  paymentType     String?      // freelancer pay model: MONTHLY | LUMP_SUM | PER_TASK
+  phone           String?
+  position        String?      // job title, e.g. Site Engineer
+  department      String?
+  address         String?      // home / mailing address (shown on profile)
+  avatar          String?
+  companyId       String?
+  company         Company?     @relation(fields: [companyId], references: [id])
+  projectId       String?      // optional project a freelancer is engaged on
+  project         Project?     @relation("ProjectEngagements", fields: [projectId], references: [id])
+  assignedTasks   Task[]       @relation("TaskAssignee")
+  createdTasks    Task[]       @relation("TaskCreator")
+  teamMemberships TeamMember[]
+  ownerDrawings   Transaction[] @relation("OwnerDrawings")
+  recordedTxns    Transaction[] @relation("TransactionRecorder")
+  overheadRecords OverheadExpense[] @relation("OverheadRecorder")
+  salaryPayments  OverheadExpense[] @relation("StaffSalary")
+  salaryApprovals SalaryRun[]  @relation("SalaryRunApprover")
+  boqRevisions    BoqRevision[] @relation("BoqRevisionCreator")
+  mobileTokens    MobileRefreshToken[]
+  uploadedPhotos  TaskPhoto[]
+  projectDocuments ProjectDocument[] @relation("ProjectDocumentCreator")
+  siteVisits       SiteVisit[]       @relation("SiteVisitor")
+
+  // Notification preference fields
+  taskAssignNotifications Boolean  @default(true)
+  dailyTaskDigest        Boolean  @default(true)
+  weeklyClientUpdates    Boolean  @default(true)
+  projectCompletionAlert Boolean  @default(true)
+  worker                 Worker?
+  memberships            Membership[]
+  orgId                  String?
+  org                    Organization? @relation(fields: [orgId], references: [id])
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([role])
+  @@index([status])
+  @@index([orgId])
+}
+
+// ── SaaS transformation Wave 1 (T-101): multi-tenancy roots ──────────────────
+// Additive only. orgId does not yet exist on tenant models (that is T-102, gated
+// on the golden-file suite T-107 + a DB copy). See docs/saas-transformation-plan.md.
+model Organization {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  status        String   @default("ACTIVE") // ACTIVE | SUSPENDED | CANCELLED
+
+  baseCurrency  String   @default("PKR")     // ISO 4217. Reporting currency; immutable after first posting.
+  locale        String   @default("en-PK")
+  timezone      String   @default("Asia/Karachi")
+  taxRate       Decimal  @default(15) @db.Decimal(9, 4)
+
+  logoUrl       String?
+  primaryColor  String?
+  terminology   Json?    // {"Domain":"Package"} — superseded by WbsLevel for tree levels
+  modules       Json?    // {"ledger":true,"inventory":false,"timesheets":true}
+
+  planId        String?
+  trialEndsAt   DateTime?
+
+  memberships   Membership[]
+  projects      Project[]
+  companies     Company[]
+  bankAccounts  BankAccount[]
+  workers       Worker[]
+  vendors       Vendor[]
+  teams         Team[]
+  lenders       Lender[]
+  investors     Investor[]
+  customTemplates CustomTemplate[]
+  boardColumns  BoardColumn[]
+  overheadExpenses OverheadExpense[]
+  salaryRuns    SalaryRun[]
+  users         User[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+}
+
+
+model Membership {
+  id        String       @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    String                              // mirrors User.role for now; capability model lands in T-106
+  status    String       @default("ACTIVE")     // ACTIVE | INVITED | SUSPENDED
+  createdAt DateTime     @default(now())
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  members     TeamMember[]
+  workers     Worker[]
+  projects    Project[]
+  orgId       String?
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([orgId])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  type          String    @default("CLIENT") // MAIN | CLIENT | FREELANCER
+  email         String?
+  phone         String?
+  address       String?   @db.Text
+  logo          String?
+  website       String?
+  users         User[]
+  projects      Project[]
+  ownerProjects Project[] @relation("ProjectOwnerCompany")
+  overheads     OverheadExpense[] @relation("CompanyOverheads")
+  salaryRuns    SalaryRun[]       @relation("CompanySalaryRuns")
+  orgId         String?
+  org           Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([orgId])
+}
+
+// Company-level operating expense (overhead / G&A) — office rent, utilities,
+// marketing, prospecting travel, staff salaries. Scoped to a MAIN company and
+// deliberately kept OFF projects: it never touches a project ledger or budget,
+// and only feeds the company P&L.
+model OverheadExpense {
+  id            String   @id @default(cuid())
+  companyId     String                       // MAIN company that incurred it
+  company       Company  @relation("CompanyOverheads", fields: [companyId], references: [id], onDelete: Cascade)
+  category      String                       // RENT | UTILITIES | SALARIES | MARKETING | TRAVEL | OFFICE | MISC
+  amount        Float
+  date          DateTime @default(now())
+  description   String?   @db.Text
+  paymentMethod String?                      // Cash | Bank | Cheque | Online
+  source        String   @default("MANUAL")  // MANUAL | SALARY
+  salaryRunId   String?                       // legacy: set by old batch salary runs
+  staffUserId   String?                       // the employee, when this is an individual salary payment
+  staffUser     User?    @relation("StaffSalary", fields: [staffUserId], references: [id])
+  period        String?                       // "YYYY-MM" for routine/monthly items (salary paid-status keying)
+  recordedById  String?
+  recordedBy    User?    @relation("OverheadRecorder", fields: [recordedById], references: [id])
+  bankAccountId String?
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  orgId         String?
+  org           Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@index([companyId, date])
+  @@index([staffUserId, period])
+  @@index([bankAccountId])
+  @@index([orgId])
+}
+
+// A proposed monthly payroll batch for a MAIN company, gated by approval.
+// On approval (any ADMIN/MANAGER) it materializes into a SALARIES OverheadExpense.
+model SalaryRun {
+  id           String    @id @default(cuid())
+  companyId    String                          // MAIN company
+  company      Company   @relation("CompanySalaryRuns", fields: [companyId], references: [id], onDelete: Cascade)
+  period       String                          // "YYYY-MM"
+  status       String    @default("PENDING")   // PENDING | APPROVED | REJECTED
+  totalAmount  Float
+  lines        String    @db.Text              // JSON: [{ userId, name, amount }]
+  createdById  String?
+  approvedById String?
+  approvedBy   User?     @relation("SalaryRunApprover", fields: [approvedById], references: [id])
+  approvedAt   DateTime?
+  orgId        String?
+  org          Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([companyId, period])               // one run per company per month
+  @@index([status])
+  @@index([orgId])
+}
+
+// Editable display labels for the Kanban board columns.
+// `id` is the fixed status key (UNDER_REVIEW, CONTRACT_FILLED, ...) that
+// projects reference; only the label is customizable (admins only).
+model BoardColumn {
+  id        String   @id
+  label     String
+  orgId     String?
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+// Kanban statuses:
+// UNDER_REVIEW | CONTRACT_FILLED | ONGOING | UNDER_CUSTOMER_REVIEW | COMPLETED
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String?   @db.Text
+  status      String    @default("UNDER_REVIEW")
+  priority    String    @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  progress    Int       @default(0)
+  // Project overview inputs (per-sq-ft summary): coveredArea in sq ft, rebate as
+  // an amount deducted before tax, sstRate the sales-tax percentage (default 15).
+  coveredArea Float?
+  rebate      Float?
+  sstRate     Float?    @default(15)
+  companyId      String
+  company        Company   @relation(fields: [companyId], references: [id])
+  ownerCompanyId String?
+  ownerCompany   Company?  @relation("ProjectOwnerCompany", fields: [ownerCompanyId], references: [id])
+  engagedUsers User[]   @relation("ProjectEngagements")
+  domains     Domain[]
+  transactions Transaction[]
+  loans       Loan[]
+  investments Investment[]
+  investorPayouts InvestorPayout[]
+  teams       Team[]
+  vendors     Vendor[]
+  revisions   BoqRevision[]
+  boqSourceFile BoqSourceFile?
+  photos        TaskPhoto[]
+  documents     ProjectDocument[]
+  workLogs      WorkerWorkLog[]
+  subcontractorEngagements SubcontractorEngagement[]
+  subcontractorLogs        SubcontractorLog[]
+  siteVisits               SiteVisit[]
+  orgId         String?
+  org           Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([companyId])
+  @@index([ownerCompanyId])
+  @@index([status])
+  @@index([updatedAt])
+  @@index([orgId])
+}
+
+// Project financial ledger — one row per money movement (project "sub-ledger").
+// type:  INCOME   = client payment received into the project bucket
+//        EXPENSE  = operational cost paid out (worker/supplier/transporter…)
+//        DRAWING  = owner withdrawal for personal use (equity reduction, NOT OPEX)
+// Cash on Hand = Σ INCOME − (Σ EXPENSE + Σ DRAWING). Expenses & drawings draw
+// from received cash, never from the theoretical budget.
+model Transaction {
+  id            String   @id @default(cuid())
+  type          String   // INCOME | EXPENSE | DRAWING
+  amount        Float
+  date          DateTime @default(now())
+  description   String?
+  category      String?  // Worker | Supplier | Transporter | Client | Owner | Misc …
+  paymentMethod String?  // Cash | Bank | Cheque | Online
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ownerId       String?  // required when type == DRAWING → the User who withdrew
+  owner         User?    @relation("OwnerDrawings", fields: [ownerId], references: [id])
+  workerId      String?  // the Worker/Supervisor paid (EXPENSE → Worker/Supervisor)
+  worker        Worker?  @relation(fields: [workerId], references: [id])
+  subcontractorId String? // the Subcontractor paid (EXPENSE → Subcontractor)
+  subcontractor Subcontractor? @relation(fields: [subcontractorId], references: [id])
+  recordedById  String?  // the User who logged this entry
+  recordedBy    User?    @relation("TransactionRecorder", fields: [recordedById], references: [id])
+  bankAccountId String?
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  isPaid        Boolean      @default(true)
+  dueDate       DateTime?
+  vendorInvoiceNo String?
+  invoiceUrl      String?
+  invoicePath     String? // storagePath
+  createdAt     DateTime @default(now())
+
+  // Composite serves both the per-project ledger read and the dashboard's
+  // `groupBy(projectId) where type = 'INCOME'` collection roll-up; the prefix
+  // also covers plain `where projectId`.
+  @@index([projectId, type])
+  @@index([workerId])
+  @@index([subcontractorId])
+  @@index([ownerId])
+  @@index([bankAccountId])
+}
+
+// A worker or supervisor paid against project expenses. When the actual worker's
+// name is unknown, the supervisor's name is stored instead.
+model Worker {
+  id           String        @id @default(cuid())
+  userId       String?       @unique
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  role         String?       // trade (e.g. Mason, Electrician) or "Supervisor"
+  phone        String?
+  notes        String?   @db.Text
+  dailyWage    Float         @default(0)
+  status       String        @default("ACTIVE") // "ACTIVE" | "INACTIVE"
+  teamId       String?
+  team         Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  workLogs     WorkerWorkLog[]
+  transactions Transaction[]
+  orgId         String?
+  org           Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([teamId])
+  @@index([userId])
+  @@index([orgId])
+}
+
+// A supplier/vendor shop the company buys materials from (paint, cement, steel,
+// bricks/blocks, etc.). Directory contact info for procurement.
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String   // shop / company name
+  supplies    String?  // materials supplied, e.g. "Cement, Steel, Bricks"
+  contactName String?  // person to contact
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?   @db.Text
+  projects    Project[]
+  orgId       String?
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+model Domain {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String?  @default("#6366f1")
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String    @db.Text
+  description String?   @db.Text
+  status      String    @default("TODO") // TODO | IN_PROGRESS | REVIEW | DONE | BLOCKED
+  priority    String    @default("MEDIUM")
+  dueDate     DateTime?
+  completedAt DateTime? // actual finish date, set when marked DONE
+  loggedHours Float?    // time logged against the task on completion
+  domainId    String
+  domain      Domain    @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creatorId   String?
+  creator     User?     @relation("TaskCreator", fields: [creatorId], references: [id])
+  // Task-level pricing — only used for measurement-driven tasks that carry no
+  // priced subtasks (a section that is itself a single measured, priced line).
+  // Tasks that have subtasks leave these null and roll up from the subtasks.
+  unit        String?
+  quantity    Float?
+  rate        Float?
+  subtasks    Subtask[]
+  photos      TaskPhoto[]
+  measurements Measurement[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([domainId])
+  @@index([assigneeId])
+  @@index([status])
+}
+
+model Subtask {
+  id           String   @id @default(cuid())
+  title        String   @db.Text
+  completed    Boolean  @default(false)
+  completedAt  DateTime? // actual finish date, set when marked complete
+  loggedHours  Float?    // time logged against the subtask on completion
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  description  String?  @db.Text
+  assigneeName String?
+  labourCount  Int?
+  unit         String?
+  quantity     Float?    // original imported BOQ quantity (R0 baseline — never overwritten by revisions)
+  completedQuantity Float? // how much has actually been done (partial completion)
+  rate         Float?    // original imported unit rate (R0 baseline)
+  notes        String?  @db.Text
+  sourceSheet  String?   // origin worksheet name in the uploaded file (for exact-layout export)
+  sourceRow    Int?      // origin 0-based row index in that worksheet
+  quantityRevisions SubtaskQuantityRevision[]
+  photos            TaskPhoto[]
+  measurements      Measurement[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([taskId])
+}
+
+// A project-wide BOQ revision round (variation order). Original = index 0 is
+// implicit and never stored; the first explicit round is index 1 ("Rev 1").
+// Only the latest revision is editable; earlier rounds are frozen baselines.
+model BoqRevision {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  index       Int      // 1, 2, 3 ...
+  label       String?  // defaults to "Rev {index}"
+  note        String?
+  createdById String?
+  createdBy   User?    @relation("BoqRevisionCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  items       SubtaskQuantityRevision[]
+
+  @@unique([projectId, index])
+  @@index([projectId])
+}
+
+// The revised quantity (and optionally rate) for one priced line at one revision.
+// A row exists only for lines that changed in that round; unchanged lines carry
+// their value forward. `rate` null = the rate carries forward unchanged.
+model SubtaskQuantityRevision {
+  id            String      @id @default(cuid())
+  revisionId    String
+  revision      BoqRevision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  revisionIndex Int         // denormalized for cheap "latest" ordering + column render
+  subtaskId     String
+  subtask       Subtask     @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+  quantity      Float       // the new quantity for this line at this revision
+  rate          Float?      // optional revised rate (null = rate carries forward unchanged)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([revisionId, subtaskId])
+  @@index([subtaskId])
+}
+
+// The raw uploaded BOQ workbook, kept so exports can reproduce the exact original
+// layout. One per project; stored outside the web root, served only via an
+// authenticated route. `storagePath` is relative to BOQ_STORAGE_DIR.
+model BoqSourceFile {
+  id           String   @id @default(cuid())
+  projectId    String   @unique
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  originalName String
+  storagePath  String
+  sheetNames   String   // JSON array of sheet names
+  createdAt    DateTime @default(now())
+}
+
+// A length/width/height measurement line contributing to a priced item's
+// quantity. Belongs to EXACTLY ONE of a Subtask (when the item has priced
+// subtasks) or a Task (a measured task with no subtasks). `computed` is the
+// stored roll-up = no × length × width × height with 1 substituted for any
+// null dimension, so a 2-D area or 1-D length also works.
+model Measurement {
+  id          String   @id @default(cuid())
+  description String?  @db.Text
+  no          Float?   @default(1)
+  length      Float?
+  width       Float?
+  height      Float?
+  computed    Float    @default(0)
+  order       Int      @default(0)
+  subtaskId   String?
+  subtask     Subtask? @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subtaskId])
+  @@index([taskId])
+}
+
+// A stored project document. Holds generated BOQ exports now (original snapshot,
+// revised workbook snapshots); modelled generically so contracts, revised
+// contracts, bank statements etc. can be added to the same section later.
+// Files live in the shared uploads storage (Cloudinary raw or local disk).
+model ProjectDocument {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // ORIGINAL_BOQ | REVISED_BOQ | CONTRACT | REVISED_CONTRACT | BANK_STATEMENT | OTHER
+  category      String   @default("OTHER")
+  originalName  String
+  storagePath   String   @db.Text
+  url           String   @db.Text
+  mimeType      String?
+  sizeBytes     Int?
+  label         String?
+  revisionIndex Int?     // BOQ revision the snapshot was generated at, if any
+  createdById   String?
+  createdBy     User?    @relation("ProjectDocumentCreator", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model CustomTemplate {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  tasks     String   @db.Text // JSON string of TaskTemplate[]
+  orgId     String?
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A mobile device's refresh token (Android app). The raw token is never stored;
+// only its sha-256 hash. Rotated on every refresh; revoking deletes/marks the row.
+// Cascade-deleted with the user so removing an account kills its mobile sessions.
+model MobileRefreshToken {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId   String   // app-generated, bound to this token
+  deviceName String?
+  tokenHash  String   @unique // sha-256 of the opaque refresh token
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  email     String   @unique // one live token per email; re-sends overwrite
+  token     String   // sha256 hex of the raw link token, never plaintext
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model TaskPhoto {
+  id            String    @id @default(cuid())
+  originalName  String
+  storagePath   String    @db.Text
+  thumbnailPath String    @db.Text
+  parentType    String    // "TASK" | "SUBTASK"
+  parentId      String    // Task or Subtask ID
+  parentTitle   String    // Cached title of parent for display if deleted/archived
+  archived      Boolean   @default(false)
+  archivedAt    DateTime?
+  retentionAlertSent Boolean @default(false)
+  
+  // EXIF Metadata
+  latitude      Float?
+  longitude     Float?
+  takenAt       DateTime? // Capture time from EXIF
+  
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  taskId        String?
+  task          Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  
+  subtaskId     String?
+  subtask       Subtask?  @relation(fields: [subtaskId], references: [id], onDelete: SetNull)
+  
+  uploaderId    String
+  uploader      User      @relation(fields: [uploaderId], references: [id])
+  
+  createdAt     DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([subtaskId])
+  @@index([parentId])
+  @@index([uploaderId])
+}
+
+model BankAccount {
+  id             String            @id @default(cuid())
+  name           String            @unique
+  bankName       String?
+  accountNumber  String?
+  branch         String?
+  initialBalance Float             @default(0)
+  transactions   Transaction[]
+  overheads      OverheadExpense[]
+  loans          Loan[]
+  repayments     LoanRepayment[]
+  investments    Investment[]
+  investorPayouts InvestorPayout[]
+  orgId          String?
+  org            Organization?     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([orgId])
+}
+
+model Loan {
+  id             String            @id @default(cuid())
+  projectId      String
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  provider       String            // e.g. "Private", "Bank Islami", "Director"
+  lenderId       String?
+  lender         Lender?           @relation(fields: [lenderId], references: [id], onDelete: SetNull)
+  amount         Float             // Principal loan amount
+  interestRate   Float             @default(0) // Interest rate percentage (e.g. 5 for 5%)
+  interestAmount Float             @default(0) // Pre-calculated interest amount
+  totalPayable   Float             // amount + interestAmount
+  amountPaid     Float             @default(0) // Total repaid so far
+  receivedDate   DateTime          @default(now())
+  dueDate        DateTime?
+  notes          String?           @db.Text
+  bankAccountId  String?
+  bankAccount    BankAccount?      @relation(fields: [bankAccountId], references: [id])
+  repayments     LoanRepayment[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([projectId])
+  @@index([bankAccountId])
+  @@index([lenderId])
+}
+
+model LoanRepayment {
+  id             String            @id @default(cuid())
+  loanId         String
+  loan           Loan              @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  amount         Float
+  date           DateTime          @default(now())
+  paymentMethod  String?
+  bankAccountId  String?
+  bankAccount    BankAccount?      @relation(fields: [bankAccountId], references: [id])
+  notes          String?           @db.Text
+  createdAt      DateTime          @default(now())
+
+  @@index([loanId])
+  @@index([bankAccountId])
+}
+
+model Lender {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  contactName String? // card holder / point of contact
+  phone     String?
+  email     String?
+  address   String?  @db.Text
+  notes     String?  @db.Text
+  loans     Loan[]
+  orgId     String?
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
+
+model Investor {
+  id          String             @id @default(cuid())
+  name        String             @unique
+  contactName String?            // card holder / point of contact
+  phone       String?
+  email       String?
+  address     String?            @db.Text
+  notes       String?            @db.Text
+  investments Investment[]
+  payouts     InvestorPayout[]
+  orgId       String?
+  org         Organization?      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([orgId])
+}
+
+model Investment {
+  id             String        @id @default(cuid())
+  investorId     String
+  investor       Investor      @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  projectId      String?       // Nullable if invested at the general company level
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  amount         Float         // Total capital invested
+  profitSharePct Float         @default(0) // e.g. 15 for 15% profit share
+  date           DateTime      @default(now())
+  notes          String?       @db.Text
+  bankAccountId  String?
+  bankAccount    BankAccount?  @relation(fields: [bankAccountId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([investorId])
+  @@index([projectId])
+  @@index([bankAccountId])
+}
+
+model InvestorPayout {
+  id            String       @id @default(cuid())
+  investorId    String
+  investor      Investor     @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  projectId     String?      // Nullable if payout is general
+  project       Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  amount        Float        // Profit share paid out
+  date          DateTime     @default(now())
+  paymentMethod String?
+  bankAccountId String?
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  notes         String?      @db.Text
+  createdAt     DateTime     @default(now())
+
+  @@index([investorId])
+  @@index([projectId])
+  @@index([bankAccountId])
+}
+
+// ── Double-entry General Ledger (Phase 0) ────────────────────────────────────
+// The single source of truth for money. Every financial event posts ONE balanced
+// JournalEntry (sum of debit lines == sum of credit lines). Domain vouchers
+// (bills, payments, loans...) link to their entry; nothing writes a balance
+// directly. Entries are append-only; corrections are reversing entries. See
+// docs/finance-system-plan.md.
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
+}
+
+enum LedgerSide {
+  D // debit
+  C // credit
+}
+
+// Chart of Accounts. Group accounts organize the tree; only leaf (non-group)
+// ledger accounts may be posted to.
+model LedgerAccount {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  name          String
+  type          AccountType
+  normalSide    LedgerSide    // ASSET/EXPENSE = D, LIABILITY/EQUITY/INCOME = C
+  isGroup       Boolean       @default(false)
+  parentId      String?
+  parent        LedgerAccount?  @relation("AccountTree", fields: [parentId], references: [id])
+  children      LedgerAccount[] @relation("AccountTree")
+  // When this ledger *is* a bank account, link it (one ledger per bank account).
+  bankAccountId String?       @unique
+  active        Boolean       @default(true)
+  lines         JournalLine[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([type])
+  @@index([parentId])
+}
+
+// A balanced journal entry (voucher). `idempotencyKey` (e.g. "BILL:<id>") makes
+// posting the same source document a no-op, so nothing is ever duplicated.
+model JournalEntry {
+  id             String   @id @default(cuid())
+  postingDate    DateTime
+  voucherType    String   // BILL | PAYMENT | PAY_ORDER | RECEIPT | BANK_TRANSFER | LOAN_DRAW | LOAN_REPAYMENT | INVOICE | CASH | JOURNAL | OPENING
+  voucherId      String?  // id of the source document (if any)
+  idempotencyKey String   @unique
+  projectId      String?
+  memo           String?
+  status         String   @default("POSTED") // POSTED | VOIDED
+  reversalOfId   String?  @unique // this entry reverses another entry
+  reversalOf     JournalEntry?  @relation("Reversal", fields: [reversalOfId], references: [id])
+  reversedBy     JournalEntry?  @relation("Reversal")
+  createdById    String?
+  createdAt      DateTime @default(now())
+  lines          JournalLine[]
+
+  @@index([voucherType, voucherId])
+  @@index([projectId])
+  @@index([postingDate])
+}
+
+// One side of a journal entry: hits exactly one ledger account with a positive
+// amount on a side (D or C). Sign is never used; direction is `side`.
+model JournalLine {
+  id                 String        @id @default(cuid())
+  entryId            String
+  entry              JournalEntry  @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  accountId          String
+  account            LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  side               LedgerSide
+  amount             Decimal       @db.Decimal(20, 4) // always > 0
+  projectId          String?
+  costCode           String?
+  partyType          String?       // SUPPLIER | CLIENT | LENDER | INVESTOR | WORKER | OWNER
+  partyId            String?
+  // Links a settling line (payment) back to the bill/loan/invoice it pays, so
+  // AP/AR outstanding is derived, never stored twice.
+  againstVoucherType String?
+  againstVoucherId   String?
+  memo               String?
+  createdAt          DateTime      @default(now())
+
+  @@index([accountId])
+  @@index([entryId])
+  @@index([partyType, partyId])
+  @@index([againstVoucherType, againstVoucherId])
+  @@index([projectId])
+}
+
+// ── Phase 1: bank & cash vouchers + reconciliation ───────────────────────────
+// A movement of money between two "money accounts" (a bank account, or Cash in
+// Hand when the *BankAccountId is null). Posts Dr destination / Cr source.
+model BankTransfer {
+  id                String   @id @default(cuid())
+  fromBankAccountId String?  // null = Cash in Hand
+  toBankAccountId   String?  // null = Cash in Hand
+  amount            Decimal  @db.Decimal(20, 4)
+  date              DateTime @default(now())
+  memo              String?
+  journalEntryId    String?  @unique
+  createdById       String?
+  createdAt         DateTime @default(now())
+
+  @@index([fromBankAccountId])
+  @@index([toBankAccountId])
+}
+
+// A bank statement imported for matching against the ledger. Unmatched lines are
+// the reconciling items, so nothing is silently assumed cleared.
+model BankReconciliation {
+  id             String              @id @default(cuid())
+  bankAccountId  String
+  statementDate  DateTime
+  closingBalance Decimal             @db.Decimal(20, 4)
+  status         String              @default("OPEN") // OPEN | COMPLETED
+  createdById    String?
+  createdAt      DateTime            @default(now())
+  lines          BankStatementLine[]
+
+  @@index([bankAccountId])
+}
+
+model BankStatementLine {
+  id                   String             @id @default(cuid())
+  reconciliationId     String
+  reconciliation       BankReconciliation @relation(fields: [reconciliationId], references: [id], onDelete: Cascade)
+  date                 DateTime
+  description          String?
+  amount               Decimal            @db.Decimal(20, 4) // + = money in, - = money out
+  matchedJournalLineId String?            @unique            // the ledger line it reconciles to
+  createdAt            DateTime           @default(now())
+
+  @@index([reconciliationId])
+}
+
+// Single-flight guard for the batch reconcile: only one full projection runs at
+// a time, so concurrent "Refresh from ledger" clicks coalesce instead of piling
+// up heavy scans. One fixed-id row.
+model LedgerSyncState {
+  id        String    @id
+  running   Boolean   @default(false)
+  lastRunAt DateTime?
+  updatedAt DateTime  @updatedAt
+}
+
+model WorkerWorkLog {
+  id        String   @id @default(cuid())
+  workerId  String
+  worker    Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date      DateTime
+  wageRate  Float    // rate at time of logging
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workerId, projectId, date])
+  @@index([projectId, date])
+  @@index([workerId])
+}
+
+// ── Subcontractors ───────────────────────────────────────────────────────────
+// A subcontractor brings its own crew; we do not track their labourers' wages -
+// only a (mostly fixed) job payment per project and how many people were on site
+// each day. Registry-style (reusable across projects), like Lender/Investor.
+model Subcontractor {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  contactName String?  // card holder / point of contact
+  phone       String?
+  email       String?
+  address     String?  @db.Text
+  notes       String?  @db.Text
+  maxMembers  Int?     // editable crew cap
+  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  members     SubcontractorMember[]
+  engagements SubcontractorEngagement[]
+  logs        SubcontractorLog[]
+  transactions Transaction[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Optional named crew members. If none, maxMembers is used as the count.
+model SubcontractorMember {
+  id              String        @id @default(cuid())
+  subcontractorId String
+  subcontractor   Subcontractor @relation(fields: [subcontractorId], references: [id], onDelete: Cascade)
+  name            String
+  role            String?
+  createdAt       DateTime      @default(now())
+
+  @@index([subcontractorId])
+}
+
+// The per-project contract. amountPaid/remaining are DERIVED from linked
+// Transactions (category Subcontractor, subcontractorId), never stored twice.
+model SubcontractorEngagement {
+  id              String        @id @default(cuid())
+  subcontractorId String
+  subcontractor   Subcontractor @relation(fields: [subcontractorId], references: [id], onDelete: Cascade)
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  contractAmount  Float         @default(0)
+  status          String        @default("ACTIVE") // ACTIVE | COMPLETED
+  startDate       DateTime?
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([subcontractorId, projectId])
+  @@index([projectId])
+}
+
+// Daily headcount the subcontractor had on a project (one per crew/project/day).
+model SubcontractorLog {
+  id              String        @id @default(cuid())
+  subcontractorId String
+  subcontractor   Subcontractor @relation(fields: [subcontractorId], references: [id], onDelete: Cascade)
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date            DateTime
+  headcount       Int           @default(0)
+  note            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([subcontractorId, projectId, date])
+  @@index([projectId, date])
+}
+
+// A core-team site visit (e.g. owner visits). Visitor is a staff User.
+model SiteVisit {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation("SiteVisitor", fields: [userId], references: [id])
+  date        DateTime
+  note        String?  @db.Text
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, date])
+  @@index([userId])
+}
+
