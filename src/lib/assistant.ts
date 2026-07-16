@@ -1,29 +1,28 @@
-// ICONA Assistant — Claude tool definitions + executors.
+// ICONA Assistant — tool definitions + executors (OpenAI/OpenRouter format).
 //
 // Every tool is READ-ONLY and fenced by the caller's existing access rules
 // (getProjectScope / canAccessProject), so the model can only see what the
 // signed-in user could already read in the UI. CLIENT users additionally get
 // the reduced finance/workflow views (no internal costs, no task internals).
 
-import type Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '@/lib/prisma';
 import type { ApiUser } from '@/lib/apiAuth';
 import { getProjectScope, canAccessProject } from '@/lib/projectAccess';
 import { computeFinancials, clientFinanceView } from '@/lib/finance';
 import { readDocument } from '@/lib/storage';
 
-export const assistantTools: Anthropic.Tool[] = [
+export const assistantTools = [
   {
     name: 'list_projects',
     description:
       "List the user's projects (id, name, status, priority, progress %, budget, dates). Call this first to resolve a project name mentioned by the user into a project_id for the other tools.",
-    input_schema: { type: 'object', properties: {} },
+    parameters: { type: 'object', properties: {} },
   },
   {
     name: 'get_project_finances',
     description:
       'Payment and financial summary for one project: client payments received, amount still receivable, and (for staff) expenses, owner drawings, cash on hand, unpaid dues and recent ledger entries. Use for any payment-related question.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: { project_id: { type: 'string', description: 'Project id from list_projects' } },
       required: ['project_id'],
@@ -33,7 +32,7 @@ export const assistantTools: Anthropic.Tool[] = [
     name: 'get_project_workflow',
     description:
       'Workflow snapshot for one project: work domains, task counts by status, overdue tasks and upcoming deadlines. Use to analyze progress, bottlenecks and what to do next.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: { project_id: { type: 'string', description: 'Project id from list_projects' } },
       required: ['project_id'],
@@ -43,7 +42,7 @@ export const assistantTools: Anthropic.Tool[] = [
     name: 'list_photos',
     description:
       'List recent site photos of a project (photo id, file name, what task/subtask it documents, capture time, GPS availability). Use view_photo afterwards to visually inspect one.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: { project_id: { type: 'string', description: 'Project id from list_projects' } },
       required: ['project_id'],
@@ -53,17 +52,17 @@ export const assistantTools: Anthropic.Tool[] = [
     name: 'view_photo',
     description:
       'Load one site photo image so you can visually analyze it — work progress, quality issues, safety hazards, materials on site. Input is a photo id from list_photos.',
-    input_schema: {
+    parameters: {
       type: 'object',
       properties: { photo_id: { type: 'string', description: 'Photo id from list_photos' } },
       required: ['photo_id'],
     },
   },
-];
+].map((t) => ({ type: 'function' as const, function: t }));
 
-const MAX_IMAGE_BYTES = 4_500_000; // API limit ~5MB base64; fall back to thumbnail above this
+const MAX_IMAGE_BYTES = 4_500_000; // keep request bodies sane; fall back to thumbnail above this
 
-function imageMediaType(name: string): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' {
+function imageMediaType(name: string): string {
   const ext = name.toLowerCase().split('.').pop();
   if (ext === 'png') return 'image/png';
   if (ext === 'webp') return 'image/webp';
@@ -79,13 +78,21 @@ async function readPhoto(storagePath: string): Promise<Buffer> {
   return readDocument(src); // handles both http(s) fetch and guarded local read
 }
 
-type ToolResult = Anthropic.ToolResultBlockParam['content'];
+/**
+ * Tool results are text (OpenAI wire format). When a tool produces an image,
+ * `imageDataUrl` is set and the chat loop delivers it as a follow-up user
+ * message with an image_url part — the standard vision-over-tools pattern.
+ */
+export interface AssistantToolResult {
+  text: string;
+  imageDataUrl?: string;
+}
 
 export async function runAssistantTool(
   user: ApiUser,
   name: string,
   input: Record<string, unknown>,
-): Promise<ToolResult> {
+): Promise<AssistantToolResult> {
   switch (name) {
     case 'list_projects': {
       const projects = await prisma.project.findMany({
@@ -97,12 +104,12 @@ export async function runAssistantTool(
         orderBy: { updatedAt: 'desc' },
         take: 50,
       });
-      return JSON.stringify(projects);
+      return { text: JSON.stringify(projects) };
     }
 
     case 'get_project_finances': {
       const projectId = String(input.project_id ?? '');
-      if (!(await canAccessProject(user, projectId))) return 'Project not found.';
+      if (!(await canAccessProject(user, projectId))) return { text: 'Project not found.' };
       const [project, txs, loans, investments, payouts] = await Promise.all([
         prisma.project.findUnique({ where: { id: projectId }, select: { name: true, budget: true } }),
         prisma.transaction.findMany({
@@ -126,19 +133,21 @@ export async function runAssistantTool(
           .filter((t: any) => t.type === 'INCOME')
           .slice(0, 15)
           .map((t: any) => ({ amount: t.amount, date: t.date, description: t.description, method: t.paymentMethod }));
-        return JSON.stringify({ project: project?.name, currency: 'PKR', ...clientFinanceView(fin), recentPayments: payments });
+        return {
+          text: JSON.stringify({ project: project?.name, currency: 'PKR', ...clientFinanceView(fin), recentPayments: payments }),
+        };
       }
 
       const recent = txs.slice(0, 15).map((t: any) => ({
         type: t.type, amount: t.amount, date: t.date, category: t.category,
         description: t.description, method: t.paymentMethod, isPaid: t.isPaid, dueDate: t.dueDate,
       }));
-      return JSON.stringify({ project: project?.name, currency: 'PKR', ...fin, recentTransactions: recent });
+      return { text: JSON.stringify({ project: project?.name, currency: 'PKR', ...fin, recentTransactions: recent }) };
     }
 
     case 'get_project_workflow': {
       const projectId = String(input.project_id ?? '');
-      if (!(await canAccessProject(user, projectId))) return 'Project not found.';
+      if (!(await canAccessProject(user, projectId))) return { text: 'Project not found.' };
       const project = await prisma.project.findUnique({
         where: { id: projectId },
         select: {
@@ -156,7 +165,7 @@ export async function runAssistantTool(
           },
         },
       });
-      if (!project) return 'Project not found.';
+      if (!project) return { text: 'Project not found.' };
 
       const now = new Date();
       const domains = project.domains.map((d: any) => {
@@ -171,27 +180,31 @@ export async function runAssistantTool(
         }
         return summary;
       });
-      return JSON.stringify({
-        project: project.name, status: project.status, progressPct: project.progress,
-        startDate: project.startDate, endDate: project.endDate, domains,
-      });
+      return {
+        text: JSON.stringify({
+          project: project.name, status: project.status, progressPct: project.progress,
+          startDate: project.startDate, endDate: project.endDate, domains,
+        }),
+      };
     }
 
     case 'list_photos': {
       const projectId = String(input.project_id ?? '');
-      if (!(await canAccessProject(user, projectId))) return 'Project not found.';
+      if (!(await canAccessProject(user, projectId))) return { text: 'Project not found.' };
       const photos = await prisma.taskPhoto.findMany({
         where: { projectId, archived: false },
         select: { id: true, originalName: true, parentTitle: true, parentType: true, takenAt: true, createdAt: true, latitude: true },
         orderBy: { createdAt: 'desc' },
         take: 30,
       });
-      return JSON.stringify(
-        photos.map((p: any) => ({
-          id: p.id, name: p.originalName, documents: `${p.parentTitle} (${p.parentType})`,
-          takenAt: p.takenAt ?? p.createdAt, hasGps: p.latitude != null,
-        })),
-      );
+      return {
+        text: JSON.stringify(
+          photos.map((p: any) => ({
+            id: p.id, name: p.originalName, documents: `${p.parentTitle} (${p.parentType})`,
+            takenAt: p.takenAt ?? p.createdAt, hasGps: p.latitude != null,
+          })),
+        ),
+      };
     }
 
     case 'view_photo': {
@@ -200,22 +213,16 @@ export async function runAssistantTool(
         where: { id: photoId },
         select: { projectId: true, originalName: true, parentTitle: true, storagePath: true, thumbnailPath: true, takenAt: true },
       });
-      if (!photo || !(await canAccessProject(user, photo.projectId))) return 'Photo not found.';
+      if (!photo || !(await canAccessProject(user, photo.projectId))) return { text: 'Photo not found.' };
       let buf = await readPhoto(photo.storagePath);
       if (buf.length > MAX_IMAGE_BYTES) buf = await readPhoto(photo.thumbnailPath);
-      return [
-        {
-          type: 'image',
-          source: { type: 'base64', media_type: imageMediaType(photo.originalName), data: buf.toString('base64') },
-        },
-        {
-          type: 'text',
-          text: `Photo "${photo.originalName}" documenting "${photo.parentTitle}"${photo.takenAt ? `, taken ${photo.takenAt.toISOString()}` : ''}.`,
-        },
-      ];
+      return {
+        text: `Photo "${photo.originalName}" documenting "${photo.parentTitle}"${photo.takenAt ? `, taken ${photo.takenAt.toISOString()}` : ''}. The image follows in the next message.`,
+        imageDataUrl: `data:${imageMediaType(photo.originalName)};base64,${buf.toString('base64')}`,
+      };
     }
 
     default:
-      return `Unknown tool: ${name}`;
+      return { text: `Unknown tool: ${name}` };
   }
 }

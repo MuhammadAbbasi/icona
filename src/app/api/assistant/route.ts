@@ -1,9 +1,9 @@
-// POST /api/assistant — the client-facing AI assistant (Claude with tools).
+// POST /api/assistant — the client-facing AI assistant.
+// Backed by OpenRouter (free NVIDIA Nemotron, tool + vision capable).
 // Stateless: the widget sends the visible conversation each turn; we run the
 // tool loop server-side and return the final text answer.
 
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { getApiUser, type ApiUser } from '@/lib/apiAuth';
 import { withTenantContext } from '@/lib/tenantPrisma';
@@ -11,6 +11,11 @@ import { assistantTools, runAssistantTool } from '@/lib/assistant';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
+
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Free Nemotron with both tool calling and image input (256K context) —
+// required so view_photo's vision analysis keeps working.
+const MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
 
 const bodySchema = z.object({
   messages: z
@@ -35,49 +40,57 @@ function systemPrompt(user: ApiUser): string {
   ].join('\n');
 }
 
-async function runChat(
-  anthropic: Anthropic,
-  user: ApiUser,
-  history: Anthropic.MessageParam[],
-): Promise<string> {
-  const messages = [...history];
+async function runChat(user: ApiUser, history: { role: string; content: string }[]): Promise<string> {
+  const messages: any[] = [{ role: 'system', content: systemPrompt(user) }, ...history];
 
   // ponytail: fixed 6-iteration tool loop; swap to streaming SSE if answers get long
   for (let i = 0; i < 6; i++) {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 2048,
-      thinking: { type: 'adaptive' },
-      system: systemPrompt(user),
-      tools: assistantTools,
-      messages,
+    const res = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ model: MODEL, messages, tools: assistantTools }),
     });
+    if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const data = await res.json();
+    if (data.error) throw new Error(`OpenRouter: ${data.error.message ?? JSON.stringify(data.error)}`);
 
-    if (response.stop_reason !== 'tool_use') {
-      return response.content
-        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text)
-        .join('');
+    const message = data.choices?.[0]?.message;
+    if (!message) throw new Error('OpenRouter returned no message');
+
+    const toolCalls = message.tool_calls ?? [];
+    if (toolCalls.length === 0) {
+      // Reasoning models may leak <think> blocks into content — strip them.
+      return String(message.content ?? '')
+        .replace(/<think>[\s\S]*?<\/think>/g, '')
+        .trim();
     }
 
-    messages.push({ role: 'assistant', content: response.content });
-
-    const results: Anthropic.ToolResultBlockParam[] = [];
-    for (const block of response.content) {
-      if (block.type !== 'tool_use') continue;
+    messages.push(message);
+    const imageParts: any[] = [];
+    for (const call of toolCalls) {
+      let text: string;
       try {
-        const content = await runAssistantTool(user, block.name, block.input as Record<string, unknown>);
-        results.push({ type: 'tool_result', tool_use_id: block.id, content });
+        const input = JSON.parse(call.function.arguments || '{}');
+        const result = await runAssistantTool(user, call.function.name, input);
+        text = result.text;
+        if (result.imageDataUrl) {
+          imageParts.push({ type: 'image_url', image_url: { url: result.imageDataUrl } });
+        }
       } catch (err: any) {
-        results.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: `Tool failed: ${err?.message ?? 'unknown error'}`,
-          is_error: true,
-        });
+        text = `Tool failed: ${err?.message ?? 'unknown error'}`;
       }
+      messages.push({ role: 'tool', tool_call_id: call.id, content: text });
     }
-    messages.push({ role: 'user', content: results });
+    // Tool results are text-only on this wire format; images ride in a user turn.
+    if (imageParts.length > 0) {
+      messages.push({
+        role: 'user',
+        content: [{ type: 'text', text: 'Photo(s) from view_photo:' }, ...imageParts],
+      });
+    }
   }
 
   return 'I could not finish that in one go — please ask a more specific question.';
@@ -87,15 +100,14 @@ export async function POST(req: Request) {
   try {
     const user = await getApiUser(req);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: 'Assistant is not configured (missing ANTHROPIC_API_KEY).' }, { status: 503 });
+    if (!process.env.OPENROUTER_API_KEY) {
+      return NextResponse.json({ error: 'Assistant is not configured (missing OPENROUTER_API_KEY).' }, { status: 503 });
     }
 
     const parsed = bodySchema.safeParse(await req.json());
     if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
 
-    const anthropic = new Anthropic();
-    const run = () => runChat(anthropic, user, parsed.data.messages);
+    const run = () => runChat(user, parsed.data.messages);
     // Explicit tenant context so scoped models work for bearer (mobile) callers too.
     const reply = user.orgId ? await withTenantContext(user.orgId, run) : await run();
 
