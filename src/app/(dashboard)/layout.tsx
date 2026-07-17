@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
+import { Providers } from '@/components/providers/Providers';
 import { DashboardLayoutClient } from '@/components/layout/DashboardLayoutClient';
 import { AssistantWidget } from '@/components/assistant/AssistantWidget';
 
@@ -11,9 +12,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session) redirect('/login');
 
   return (
-    <DashboardLayoutClient>
-      {children}
-      <AssistantWidget />
-    </DashboardLayoutClient>
+    <Providers>
+      <DashboardLayoutClient>
+        {children}
+        <AssistantWidget />
+      </DashboardLayoutClient>
+    </Providers>
   );
 }
