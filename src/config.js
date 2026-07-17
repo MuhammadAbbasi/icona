@@ -16,140 +16,102 @@ export const SITE_CONFIG = {
   },
 
   nav: [
-    { name: 'Modules', href: '#modules' },
-    { name: 'Product', href: '#product' },
     { name: 'How it works', href: '#how' },
+    { name: 'Why teams switch', href: '#why' },
     { name: 'Pricing', href: '#pricing' },
     { name: 'Guides', href: '#guides' },
     { name: 'FAQ', href: '#faq' },
   ],
 
   hero: {
-    badge: 'Built for construction SMEs in Pakistan & beyond',
-    title: 'Run your whole construction business in one place',
-    highlight: 'one place',
+    badge: 'The all-in-one portal for construction SMEs',
+    title: 'Build your vision. Manage the reality.',
+    highlight: 'Manage the reality.',
     subtitle:
-      'Stop stitching together spreadsheets. ICONA unifies estimating, project control, labour, subcontractors, and the complete ledger into one ERP + CRM, priced for small and medium firms.',
-    primaryCta: { label: 'Start now', href: 'signup' }, // 'signup' resolves to appUrl + signupPath
+      'One unified portal for your whole construction firm: Kanban workflows, project tracking, the complete ledger, and a client portal - on web and on site.',
+    primaryCta: { label: 'Get Started', href: 'signup' }, // 'signup' resolves to appUrl + signupPath
     secondaryCta: { label: 'Book a demo', href: '#contact' },
     footnote: 'Monthly plans from $25. Pay annually and get 2 months free.',
+    scrollHint: 'Scroll to open',
   },
 
-  // Real product facts, not vanity numbers.
-  stats: [
-    { value: '7', label: 'connected modules' },
-    { value: '2', label: 'platforms: web + mobile' },
-    { value: '4', label: 'user roles with data rights' },
-    { value: '1', label: 'ledger for the whole firm' },
-  ],
-
+  // Four umbrella modules (zigzag layout); each absorbs the underlying ERP areas.
   modules: [
     {
-      group: 'ERP',
-      icon: 'Layers',
-      title: 'BOQ & Estimation',
+      icon: 'Workflow',
+      title: 'Workflow Management',
       description:
-        'Hierarchical bills of quantities (Project to Domain to Task to priced line items) with automatic amount rollups and Excel or template import.',
+        'Run every project on a Kanban board your whole team understands - from first enquiry to handover, with roles and approvals built in.',
+      features: ['Kanban project board with custom columns', 'Admin / manager / employee / client roles', 'Salary runs with approval flows', 'Teams and assignments'],
+      snapshot: 'kanban',
     },
     {
-      group: 'ERP',
-      icon: 'FolderKanban',
-      title: 'Project Control',
-      description:
-        'A structured project hierarchy with revisions, so every change to scope and price is tracked and never lost.',
-    },
-    {
-      group: 'ERP',
-      icon: 'Wallet',
-      title: 'Finance & Ledger',
-      description:
-        'Record every transaction, compare budget against actuals, and see cash flow per project and across the company in one complete ledger.',
-    },
-    {
-      group: 'ERP',
       icon: 'HardHat',
-      title: 'Subcontractors',
+      title: 'Project Tracking',
       description:
-        'Maintain a subcontractor registry and assign them to work at a fixed contract price, with clear accountability.',
+        'The BOQ is the backbone: import it from Excel, track quantities and revisions, and watch progress roll up from the site to the summary.',
+      features: ['BOQ & estimation with automatic rollups', 'Revisions / variation orders, never lost', 'Site attendance, labour logs & photos', 'Value-weighted progress tracking'],
+      snapshot: 'boq',
     },
     {
-      group: 'ERP',
-      icon: 'ClipboardList',
-      title: 'Labour & Attendance',
+      icon: 'Wallet',
+      title: 'Financial Management',
       description:
-        'Daily labour logs, attendance sheets, salaries, and site-visit records captured from the field, not from memory.',
+        'A complete double-entry ledger under every project: budget vs actual, cash position, loans and investor funding - live, not month-end.',
+      features: ['Complete ledger & cash flow', 'Budget vs actual per project', 'Overheads, salaries & vendor payments', 'Investors, lenders & loan tracking'],
+      snapshot: 'budget',
     },
     {
-      group: 'ERP',
-      icon: 'Landmark',
-      title: 'Investors & Lenders',
-      description:
-        'Track lenders and investors and the funding tied to each project, so financing is always visible.',
-    },
-    {
-      group: 'CRM',
       icon: 'Users',
-      title: 'Clients & Leads',
+      title: 'Client Collaboration Portal',
       description:
-        'Manage clients, enquiries, and proposals alongside the projects they belong to, in one shared record.',
+        'Give every client their own login: they see their projects, progress, and documents - and nothing else. No more status-call Fridays.',
+      features: ['Scoped client logins per company', 'Live progress & BOQ visibility', 'Proposals, enquiries & shared documents', 'Read-only exports in the original layout'],
+      snapshot: 'client',
     },
   ],
 
-  // "Screenshots" section: CSS product mocks with captions (no real screenshots yet).
-  product: {
-    heading: 'See ICONA at work',
-    subheading:
-      'From the priced BOQ to the daily attendance sheet, every screen reads from the same live data.',
-    captions: [
-      {
-        title: 'BOQ that adds itself up',
-        text: 'Import from Excel, price line items, and watch rollups update through the whole hierarchy.',
-      },
-      {
-        title: 'Budget vs actual, live',
-        text: 'Every site expense lands against its project, so overruns show up in days, not at handover.',
-      },
-      {
-        title: 'Attendance from the site',
-        text: 'Supervisors mark labour on the mobile app; payroll and the ledger see it instantly.',
-      },
-    ],
-  },
-
-  mobile: {
-    title: 'Your site office, in your pocket',
-    subtitle:
-      'Field teams do not sit at a desk. The ICONA mobile app puts the day-to-day site workflow on Android.',
-    points: [
-      'Log labour and mark attendance on site',
-      'Record site visits with notes and photos',
-      'Browse the live project hierarchy and BOQ',
-      'Everything syncs back to the web ERP',
-    ],
-  },
-
+  // The user journey: win the bid -> run the board -> bill the client.
   how: [
     {
       step: '01',
-      title: 'Sign up & set up',
-      description: 'Create your firm, add your team with the right roles, and import projects via Excel or templates.',
+      title: 'Win the bid',
+      description:
+        'Import the BOQ from Excel, price every line, and send a proposal you can defend - rollups add themselves up.',
+      snapshot: 'boq',
     },
     {
       step: '02',
-      title: 'Run the site',
-      description: 'Log labour, attendance, subcontractors, and site visits as the work happens, on web or mobile.',
+      title: 'Organize the board',
+      description:
+        'The project lands on the Kanban board. Site teams log attendance, photos, and progress from the mobile app.',
+      snapshot: 'kanban',
     },
     {
       step: '03',
-      title: 'Control the money',
-      description: 'Record transactions and watch budget versus actual on every project in real time.',
-    },
-    {
-      step: '04',
-      title: 'Decide with clarity',
-      description: 'Revisions and reports keep owners, investors, and lenders aligned on where each project stands.',
+      title: 'Bill the client',
+      description:
+        'Every expense already sits on the ledger. Track budget vs actual live and invoice from real numbers, not memory.',
+      snapshot: 'budget',
     },
   ],
+
+  whySwitch: {
+    heading: 'Why teams switch to ICONA',
+    subheading: 'Construction firms do not fail at building. They fail at fragmented paperwork.',
+    pains: [
+      'Estimates in Excel, actuals in WhatsApp, invoices in a drawer',
+      'Nobody knows today’s real cash position',
+      'Progress reported from memory at Friday meetings',
+      'Client calls interrupting the site all week',
+    ],
+    gains: [
+      'One chain from BOQ to ledger - nothing falls between tools',
+      'Live cash position and budget vs actual on every project',
+      'Progress rolls up from site logs, not opinions',
+      'Clients check their own portal instead of calling you',
+    ],
+  },
 
   billing: {
     annualMonthsFree: 2, // pay for 10 months, get 12

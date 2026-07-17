@@ -70,10 +70,10 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded overflow-hidden">
-              <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+            <div className="h-7 w-7 rounded overflow-hidden bg-white p-0.5">
+              <img src="/logo-icon.png" alt="ICONA logo" className="h-full w-full object-contain" />
             </div>
-            <span className="font-bold text-sm text-foreground">ICON ERP</span>
+            <span className="font-bold text-sm text-foreground">ICONA</span>
           </div>
         </header>
 

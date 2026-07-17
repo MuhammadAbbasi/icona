@@ -81,9 +81,9 @@ export default function SignupPage() {
       <div className="hidden lg:flex lg:w-[48%] relative bg-slate-950 overflow-hidden flex-col justify-between p-12">
         {/* Decorative background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-orange-600/20 blur-3xl" />
-          <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] rounded-full bg-amber-600/15 blur-3xl" />
-          <div className="absolute top-1/2 left-1/4 w-[300px] h-[300px] rounded-full bg-orange-500/10 blur-3xl" />
+          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-blue-600/20 blur-3xl" />
+          <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] rounded-full bg-sky-600/15 blur-3xl" />
+          <div className="absolute top-1/2 left-1/4 w-[300px] h-[300px] rounded-full bg-blue-500/10 blur-3xl" />
           {/* Grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.03]"
@@ -97,12 +97,12 @@ export default function SignupPage() {
         <div className="relative z-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-lg bg-orange-600 flex items-center justify-center text-white font-bold text-xl">
-              I
+            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-lg bg-white p-0.5 flex-shrink-0">
+              <img src="/logo-icon.png" alt="ICONA logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <div className="text-white font-bold text-lg leading-none tracking-tight">ICONA</div>
-              <div className="text-orange-500 text-xs font-semibold tracking-widest uppercase mt-0.5">SaaS ERP</div>
+              <div className="text-sky-500 text-xs font-semibold tracking-widest uppercase mt-0.5">SaaS ERP</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function SignupPage() {
           <div className="space-y-4">
             <h1 className="text-4xl font-extrabold text-white leading-[1.15] tracking-tight">
               Create your unified<br />
-              <span className="text-orange-500">construction workspace</span>
+              <span className="text-sky-400">construction workspace</span>
             </h1>
             <p className="text-slate-400 text-base leading-relaxed max-w-sm">
               Provision a complete construction ERP and CRM suite for your projects, financials, labor, and subcontractors in under 60 seconds.
@@ -154,8 +154,8 @@ export default function SignupPage() {
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
           {sent ? (
             <div className="text-center py-6">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100">
-                <MailCheck className="h-7 w-7 text-orange-600" />
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
+                <MailCheck className="h-7 w-7 text-blue-600" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Check your email</h2>
               <p className="mt-3 text-sm text-slate-500 leading-relaxed">
@@ -172,7 +172,7 @@ export default function SignupPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Get started with ICONA</h2>
             <p className="mt-1.5 text-sm text-slate-500">
-              Sign up and configure your construction portal. Already have an account? <a href="/login" className="text-orange-600 hover:underline font-semibold">Sign in</a>
+              Sign up and configure your construction portal. Already have an account? <a href="/login" className="text-blue-600 hover:underline font-semibold">Sign in</a>
             </p>
           </div>
 
@@ -187,13 +187,13 @@ export default function SignupPage() {
                 onChange={handleOrgNameChange}
                 disabled={isLoading}
                 required
-                className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="slug">Workspace Subdomain Slug</Label>
-              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-0 focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-500">
+              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-0 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500">
                 <input
                   id="slug"
                   type="text"
@@ -222,7 +222,7 @@ export default function SignupPage() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   required
-                  className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                  className="h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -251,7 +251,7 @@ export default function SignupPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     required
-                    className="h-11 pr-10 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                    className="h-11 pr-10 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
                   />
                   <button
                     type="button"
@@ -270,7 +270,7 @@ export default function SignupPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white rounded-xl shadow-lg shadow-orange-600/10 text-sm font-semibold transition-all mt-2" disabled={isLoading}>
+            <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/10 text-sm font-semibold transition-all mt-2" disabled={isLoading}>
               {isLoading ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating Workspace…</>
               ) : (

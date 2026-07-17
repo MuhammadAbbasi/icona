@@ -4,80 +4,81 @@
 
 @layer base {
   :root {
-    --background: 30 30% 97%;
-    --foreground: 225 50% 9%;
+    --background: 215 25% 97%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 225 50% 9%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 225 50% 9%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 21 92% 51%;
+    --primary: 221 83% 53%; /* Royal Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 20% 94%;
-    --secondary-foreground: 225 50% 9%;
+    --secondary: 215 15% 92%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 30 20% 94%;
-    --muted-foreground: 225 15% 42%;
+    --muted: 215 15% 92%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 30 25% 92%;
-    --accent-foreground: 225 50% 9%;
+    --accent: 215 15% 90%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 28 18% 88%;
-    --input: 28 18% 86%;
-    --ring: 21 92% 51%;
+    --border: 215 15% 88%;
+    --input: 215 15% 86%;
+    --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
     /* Dark navy "ink" surfaces: hero mock, CTA band, footer */
-    --ink: 226 55% 8%;
-    --ink-foreground: 220 30% 95%;
-    --ink-muted: 222 18% 64%;
-    --ink-border: 226 35% 17%;
-    --ink-card: 226 45% 11%;
+    --ink: 222 47% 8%;
+    --ink-foreground: 215 20% 95%;
+    --ink-muted: 215 16% 65%;
+    --ink-border: 222 35% 17%;
+    --ink-card: 222 45% 11%;
   }
 
   .dark {
-    --background: 226 55% 5%;
-    --foreground: 220 30% 95%;
+    --background: 222 47% 6%;
+    --foreground: 215 20% 95%;
 
-    --card: 226 45% 9%;
-    --card-foreground: 220 30% 95%;
+    --card: 222 47% 9%;
+    --card-foreground: 215 20% 95%;
 
-    --popover: 226 45% 9%;
-    --popover-foreground: 220 30% 95%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 215 20% 95%;
 
-    --primary: 21 92% 54%;
+    --primary: 217 91% 60%; /* Bright Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 226 40% 13%;
-    --secondary-foreground: 220 30% 95%;
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 215 20% 95%;
 
-    --muted: 226 40% 12%;
-    --muted-foreground: 222 18% 64%;
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 226 40% 14%;
-    --accent-foreground: 220 30% 95%;
+    --accent: 222 47% 18%;
+    --accent-foreground: 215 20% 95%;
 
     --destructive: 0 63% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 226 35% 15%;
-    --input: 226 35% 15%;
-    --ring: 21 92% 54%;
+    --border: 222 47% 16%;
+    --input: 222 47% 16%;
+    --ring: 217 91% 60%;
 
-    --ink: 226 55% 6%;
-    --ink-foreground: 220 30% 95%;
-    --ink-muted: 222 18% 64%;
-    --ink-border: 226 35% 15%;
-    --ink-card: 226 45% 9%;
+    --ink: 222 47% 6%;
+    --ink-foreground: 215 20% 95%;
+    --ink-muted: 215 16% 65%;
+    --ink-border: 222 47% 16%;
+    --ink-card: 222 47% 9%;
   }
 }
+
 
 @layer base {
   * { @apply border-border; }
@@ -104,7 +105,7 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-orange-500 to-amber-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-sky-500 to-cyan-400 bg-clip-text text-transparent;
   }
 
   /* Scroll-in reveal, driven by the <Reveal> IntersectionObserver wrapper.
@@ -126,6 +127,16 @@
 
   .btn-press {
     @apply transition-all duration-200 active:scale-[0.97];
+  }
+
+  /* Blueprint lines drawing themselves (paths carry pathLength="1") */
+  .blueprint path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: blueprint-draw 2.2s ease-out forwards;
+  }
+  @keyframes blueprint-draw {
+    to { stroke-dashoffset: 0; }
   }
 }
 

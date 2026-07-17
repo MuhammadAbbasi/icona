@@ -11,7 +11,7 @@ const Testimonials = () => {
   return (
     <section className="border-y border-border bg-muted/40">
       <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-        <SectionHeader eyebrow="Why teams switch" title="Built around real site workflows" />
+        <SectionHeader eyebrow="Testimonials" title="Built around real site workflows" />
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {testimonials.map((t, i) => (
@@ -20,7 +20,7 @@ const Testimonials = () => {
                 <Quote size={24} className="text-primary/50" />
                 <blockquote className="mt-4 flex-1 leading-relaxed">&ldquo;{t.quote}&rdquo;</blockquote>
                 <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-5">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary/20 to-amber-500/20 text-sm font-bold text-primary">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary/20 to-sky-500/20 text-sm font-bold text-primary">
                     {initials(t.author)}
                   </span>
                   <span>

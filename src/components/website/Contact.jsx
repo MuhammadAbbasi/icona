@@ -41,7 +41,7 @@ const Contact = () => {
 
           <a
             href={resolveCta(hero.primaryCta.href)}
-            className="btn-press mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-orange-500 px-7 py-3.5 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-shadow hover:shadow-xl hover:shadow-primary/40"
+            className="btn-press mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-sky-500 px-7 py-3.5 font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-shadow hover:shadow-xl hover:shadow-primary/40"
           >
             Sign up now <ArrowRight size={18} />
           </a>
@@ -86,7 +86,7 @@ const Contact = () => {
               <button
                 type="submit"
                 disabled={status === 'sending' || status === 'sent'}
-                className="btn-press inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-orange-500 px-5 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-opacity hover:opacity-95 disabled:opacity-60"
+                className="btn-press inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-sky-500 px-5 py-3 font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-opacity hover:opacity-95 disabled:opacity-60"
               >
                 {status === 'sending' ? 'Sending...' : status === 'sent' ? 'Request received' : 'Book a demo'}
                 {status === 'idle' && <ArrowRight size={18} />}

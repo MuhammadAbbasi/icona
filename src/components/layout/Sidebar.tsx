@@ -47,12 +47,12 @@ export function Sidebar() {
         className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border/60 hover:bg-sidebar-accent/40 transition-colors"
         title="Go to Project Board"
       >
-        <div className="h-8 w-8 rounded-lg overflow-hidden flex-shrink-0">
-          <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+        <div className="h-8 w-8 rounded-lg overflow-hidden flex-shrink-0 bg-white p-0.5">
+          <img src="/logo-icon.png" alt="ICONA logo" className="h-full w-full object-contain" />
         </div>
         <div>
-          <div className="font-bold text-sm text-sidebar-foreground leading-none">ICON ERP</div>
-          <div className="text-[10px] text-slate-500 font-medium tracking-widest uppercase mt-0.5">Services</div>
+          <div className="font-bold text-sm text-sidebar-foreground leading-none">ICONA</div>
+          <div className="text-[10px] text-slate-500 font-medium tracking-widest uppercase mt-0.5">SaaS ERP</div>
         </div>
       </Link>
 

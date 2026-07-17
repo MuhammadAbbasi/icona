@@ -26,12 +26,12 @@ export default function LoginPage() {
         <div className="relative z-10">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-              <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+            <div className="h-10 w-10 rounded-xl overflow-hidden shadow-lg bg-white p-0.5 flex-shrink-0">
+              <img src="/logo-icon.png" alt="ICONA logo" className="h-full w-full object-contain" />
             </div>
             <div>
-              <div className="text-white font-bold text-lg leading-none">ICON</div>
-              <div className="text-slate-400 text-xs font-medium tracking-widest uppercase">Services</div>
+              <div className="text-white font-bold text-lg leading-none">ICONA</div>
+              <div className="text-slate-400 text-xs font-medium tracking-widest uppercase mt-0.5">SaaS ERP</div>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="relative z-10 text-xs text-slate-600">
-          © 2026 ICON SERVICES. All rights reserved.
+          © 2026 ICONA. All rights reserved.
         </div>
       </div>
 
@@ -83,10 +83,10 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="h-9 w-9 rounded-xl overflow-hidden flex-shrink-0">
-              <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+            <div className="h-9 w-9 rounded-xl overflow-hidden bg-white p-0.5 flex-shrink-0">
+              <img src="/logo-icon.png" alt="ICONA logo" className="h-full w-full object-contain" />
             </div>
-            <span className="font-bold text-foreground">ICON Services</span>
+            <span className="font-bold text-foreground">ICONA SaaS ERP</span>
           </div>
 
           <div className="mb-8">

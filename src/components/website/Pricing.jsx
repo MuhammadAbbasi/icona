@@ -29,7 +29,7 @@ const Pricing = () => {
               onClick={() => setCycle(opt.key)}
               aria-pressed={cycle === opt.key}
               className={`btn-press rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
-                cycle === opt.key ? 'bg-gradient-to-r from-primary to-orange-500 text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
+                cycle === opt.key ? 'bg-gradient-to-r from-primary to-sky-500 text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {opt.label}
@@ -54,7 +54,7 @@ const Pricing = () => {
                 }`}
               >
                 {tier.featured && (
-                  <span className="mb-4 w-fit rounded-full bg-gradient-to-r from-primary to-orange-500 px-3 py-1 text-xs font-semibold text-primary-foreground">
+                  <span className="mb-4 w-fit rounded-full bg-gradient-to-r from-primary to-sky-500 px-3 py-1 text-xs font-semibold text-primary-foreground">
                     Most popular
                   </span>
                 )}
@@ -93,7 +93,7 @@ const Pricing = () => {
                   href={resolveCta(tier.ctaHref)}
                   className={`btn-press mt-8 rounded-xl px-5 py-3 text-center text-sm font-semibold transition-all ${
                     tier.featured
-                      ? 'bg-gradient-to-r from-primary to-orange-500 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35'
+                      ? 'bg-gradient-to-r from-primary to-sky-500 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35'
                       : 'border border-border bg-background hover:bg-accent'
                   }`}
                 >

@@ -19,7 +19,7 @@ const Guides = () => {
             <Reveal key={g.title} delay={i * 90} className="h-full">
               <div className="card-hover flex h-full flex-col rounded-2xl border border-border bg-card p-6">
                 <div className="flex items-center justify-between">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-amber-500/15 text-primary">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-sky-500/15 text-primary">
                     <Icon size={20} />
                   </span>
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">

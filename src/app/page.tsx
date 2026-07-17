@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/website/Navbar';
-import Hero from '@/components/website/Hero';
+import ScrollShowcase from '@/components/website/ScrollShowcase';
 import Modules from '@/components/website/Modules';
-import ProductPreview from '@/components/website/ProductPreview';
-import MobileApp from '@/components/website/MobileApp';
 import HowItWorks from '@/components/website/HowItWorks';
-import Pricing from '@/components/website/Pricing';
+import WhySwitch from '@/components/website/WhySwitch';
 import Testimonials from '@/components/website/Testimonials';
+import Pricing from '@/components/website/Pricing';
 import Guides from '@/components/website/Guides';
 import Faq from '@/components/website/Faq';
 import Contact from '@/components/website/Contact';
@@ -14,7 +13,7 @@ import Footer from '@/components/website/Footer';
 
 export const metadata: Metadata = {
   description:
-    'ICONA is ERP and CRM software for small and medium construction companies. Manage BOQ, project control, finance, labour, subcontractors, staff, and the complete ledger in one system, on web and mobile.',
+    'ICONA is the all-in-one portal for construction companies: Kanban workflows, project tracking, financial management, and a client portal - on web and mobile.',
 };
 
 export default function HomePage() {
@@ -22,13 +21,12 @@ export default function HomePage() {
     <>
       <Navbar />
       <main>
-        <Hero />
+        <ScrollShowcase />
         <Modules />
-        <ProductPreview />
-        <MobileApp />
         <HowItWorks />
-        <Pricing />
+        <WhySwitch />
         <Testimonials />
+        <Pricing />
         <Guides />
         <Faq />
         <Contact />
