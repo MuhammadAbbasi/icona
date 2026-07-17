@@ -42,7 +42,7 @@ export function Sidebar() {
         title="Go to Project Board"
       >
         <div className="h-8 w-8 rounded-lg overflow-hidden flex-shrink-0">
-          <img src="/assets/logo.jpeg" alt="ICON Services Logo" className="h-full w-full object-cover" />
+          <img src="/favicon.svg" alt="ICONA logo" className="h-full w-full object-cover" />
         </div>
         <div>
           <div className="font-bold text-sm text-sidebar-foreground leading-none">ICON ERP</div>

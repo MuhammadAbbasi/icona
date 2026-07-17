@@ -71,7 +71,7 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
           </Button>
           <div className="flex items-center gap-3">
             <div className="h-7 w-7 rounded overflow-hidden">
-              <img src="/assets/logo.jpeg" alt="ICON Services Logo" className="h-full w-full object-cover" />
+              <img src="/favicon.svg" alt="ICONA logo" className="h-full w-full object-cover" />
             </div>
             <span className="font-bold text-sm text-foreground">ICON ERP</span>
           </div>
