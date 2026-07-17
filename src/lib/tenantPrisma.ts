@@ -28,7 +28,10 @@ const SCOPED_MODELS = [
   'SalaryRun',
 ];
 
-export function getTenantScopedClient(baseClient: PrismaClient) {
+// Return type is cast back to PrismaClient: the $extends query overrides do not
+// change any result shapes, but their inferred type erases Prisma's generics
+// (every result became `{}`), cascading implicit-any errors across the app.
+export function getTenantScopedClient(baseClient: PrismaClient): PrismaClient {
   return baseClient.$extends({
     query: {
       $allModels: {
@@ -109,5 +112,5 @@ export function getTenantScopedClient(baseClient: PrismaClient) {
         },
       },
     },
-  });
+  }) as unknown as PrismaClient;
 }

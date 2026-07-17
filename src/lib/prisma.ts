@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { getTenantScopedClient } from './tenantPrisma';
 
-const globalForPrisma = globalThis as unknown as { 
-  systemPrisma: PrismaClient;
-  prisma: any;
+const globalForPrisma = globalThis as unknown as {
+  systemPrisma?: PrismaClient;
+  prisma?: PrismaClient;
 };
 
 // 1. Create the base unscoped client

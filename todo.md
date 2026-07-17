@@ -46,3 +46,31 @@ All are marked `TODO` in `src/config.js`.
 ## Deploy
 - [ ] Import repo at vercel.com/new as a NEW project (do not touch the CRM's
       Vercel project). Attach the real domain in Vercel > Settings > Domains.
+
+## Email deliverability
+
+### Quick fix (do now) - add DMARC DNS record
+The sending domain `muhammadabbasi.com` has no DMARC record. Gmail silently
+drops mail from domains without one. Add this TXT record in the DNS panel:
+
+  Name:  _dmarc
+  Type:  TXT
+  Value: v=DMARC1; p=none; rua=mailto:crm@icon.muhammadabbasi.com
+
+- [ ] Add `_dmarc` TXT record for `muhammadabbasi.com` (see above).
+
+### Proper fix (Resend migration)
+The current setup uses the cPanel SMTP on a shared hosting IP
+(208.115.236.10). Shared IPs have poor reputation with Gmail/Outlook and
+will cause random delivery failures at scale. Replace with Resend:
+
+1. Sign up at https://resend.com (free: 3,000 emails/month).
+2. Add and verify `muhammadabbasi.com` as a sending domain in Resend.
+3. Resend will provide DKIM + DMARC DNS records - add them.
+4. Get a Resend API key and add it to `.env` as `RESEND_API_KEY`.
+5. Install the SDK: `npm install resend`.
+6. Replace `src/lib/mail.ts` to use the Resend client instead of nodemailer.
+7. Remove `SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS / SMTP_FROM`
+   from `.env` and `.env.example` once Resend is confirmed working.
+
+- [x] Migrate email sending from cPanel SMTP to Resend.

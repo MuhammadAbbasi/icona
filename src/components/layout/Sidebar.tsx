@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -29,6 +30,11 @@ export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
+  // Theme is unknown during SSR (next-themes reads localStorage); render the
+  // toggle only after mount or the Sun/Moon icon mismatches and breaks hydration.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDark = mounted && theme === 'dark';
   const role = session?.user?.role as Role;
 
   const allowed = navItems.filter((item) => item.roles.includes(role));
@@ -87,10 +93,10 @@ export function Sidebar() {
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 px-3"
         >
-          {theme === 'dark'
+          {isDark
             ? <Sun className="h-4 w-4 text-amber-400" />
             : <Moon className="h-4 w-4 text-slate-400" />}
-          <span className="text-sm">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+          <span className="text-sm">{isDark ? 'Light mode' : 'Dark mode'}</span>
         </Button>
 
         <Link
