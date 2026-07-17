@@ -24,7 +24,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://res.cloudinary.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ws: wss: https://formspree.io; frame-ancestors 'none'; form-action 'self' https://formspree.io;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://res.cloudinary.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' ws: wss: https://formspree.io; frame-ancestors 'self'; form-action 'self' https://formspree.io;",
           },
           {
             key: 'X-Frame-Options',

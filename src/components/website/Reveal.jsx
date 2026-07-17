@@ -19,7 +19,13 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
       { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
     );
     io.observe(el);
-    return () => io.disconnect();
+    // Fail-open: if the observer never fires (any browser quirk), reveal anyway —
+    // content must never be able to stay invisible.
+    const failOpen = setTimeout(() => el.classList.add('is-in'), 2500);
+    return () => {
+      io.disconnect();
+      clearTimeout(failOpen);
+    };
   }, []);
 
   return (

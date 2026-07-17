@@ -74,20 +74,20 @@ const ScrollShowcase = () => {
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
 
-  // hero copy fades up and out
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.16], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 0.16], [0, -70]);
-  // laptop rises from the bottom and grows to center stage
-  const laptopY = useTransform(scrollYProgress, [0, 0.34], ['46vh', '6vh']);
-  const laptopScale = useTransform(scrollYProgress, [0, 0.34], [0.66, 1]);
-  // lid opens
-  const lidRotate = useTransform(scrollYProgress, [0.2, 0.5], [-88, 0]);
-  const screenOpacity = useTransform(scrollYProgress, [0.34, 0.48], [0, 1]);
-  const coverOpacity = useTransform(scrollYProgress, [0.34, 0.44], [1, 0]);
+  // hero copy holds, then fades up and out
+  const heroOpacity = useTransform(scrollYProgress, [0.08, 0.3], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0.08, 0.3], [0, -70]);
+  // laptop peeks above the fold at rest, rises and grows to center stage
+  const laptopY = useTransform(scrollYProgress, [0, 0.35], ['26vh', '4vh']);
+  const laptopScale = useTransform(scrollYProgress, [0, 0.35], [0.8, 1]);
+  // lid opens (starts part-closed so the cover is visible at rest)
+  const lidRotate = useTransform(scrollYProgress, [0.28, 0.55], [-70, 0]);
+  const screenOpacity = useTransform(scrollYProgress, [0.42, 0.56], [0, 1]);
+  const coverOpacity = useTransform(scrollYProgress, [0.42, 0.52], [1, 0]);
   // laptop yields the center, phone slides in from the right
-  const laptopX = useTransform(scrollYProgress, [0.58, 0.78], ['0%', '-14%']);
-  const phoneX = useTransform(scrollYProgress, [0.6, 0.8], ['160%', '0%']);
-  const phoneOpacity = useTransform(scrollYProgress, [0.6, 0.72], [0, 1]);
+  const laptopX = useTransform(scrollYProgress, [0.62, 0.82], ['0%', '-14%']);
+  const phoneX = useTransform(scrollYProgress, [0.65, 0.85], ['160%', '0%']);
+  const phoneOpacity = useTransform(scrollYProgress, [0.65, 0.76], [0, 1]);
   const hintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
   const heroCopy = (
@@ -133,7 +133,7 @@ const ScrollShowcase = () => {
   }
 
   return (
-    <section id="top" ref={ref} className="relative h-[340vh] bg-ink">
+    <section id="top" ref={ref} className="relative h-[260vh] bg-ink">
       <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
         <Blueprint />
 
