@@ -25,7 +25,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Update Organization details
+    // 2. Update Organization details. Billing starts as a 14-day free trial —
+    // no card is collected; a payment-provider webhook flips billingStatus later.
     await systemPrisma.organization.update({
       where: { id: orgId },
       data: {
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
         taxRate: Number(taxRate || 15),
         terminology: terminology || null,
         planId: planId || 'growth_monthly',
+        billingStatus: 'TRIAL',
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       },
     });
 
@@ -56,7 +59,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { message: 'Onboarding settings applied successfully.' },
+      {
+        message: 'Onboarding settings applied successfully.',
+        // The wizard needs this to create the first project (BOQ import).
+        companyId: mainCompany?.id ?? null,
+      },
       { status: 200 }
     );
   } catch (error: any) {

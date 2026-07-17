@@ -13,6 +13,11 @@ const PUBLIC_PATHS = [
   '/api/debug',
   '/api/auth/forgot-password',
   '/api/auth/verify-email',
+  '/api/boq/template',
+  // Pre-login onboarding step (runs after email verification, before signIn).
+  // ponytail: authenticated only by orgId knowledge; bind to a signed
+  // verification token when the payment provider lands.
+  '/api/settings/onboarding',
   '/api/auth/reset-password',
   '/api/mobile/auth/login',
   '/api/mobile/auth/refresh',

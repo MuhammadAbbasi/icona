@@ -72,6 +72,7 @@ model Organization {
   name          String
   slug          String   @unique
   status        String   @default("ACTIVE") // ACTIVE | SUSPENDED | CANCELLED
+  billingStatus String   @default("TRIAL")  // TRIAL | ACTIVE | PAST_DUE | CANCELLED (set by payment webhook later)
 
   baseCurrency  String   @default("PKR")     // ISO 4217. Reporting currency; immutable after first posting.
   locale        String   @default("en-PK")

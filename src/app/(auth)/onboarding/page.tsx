@@ -53,16 +53,13 @@ function OnboardingWizard() {
   const [level3, setLevel3] = useState('Subtask');
   const [inviteEmails, setInviteEmails] = useState('');
 
-  // Step 3: Subscription & Payment
+  // Step 3: Subscription (14-day free trial, no card collected)
   const [selectedPlan, setSelectedPlan] = useState('growth'); // starter | growth | enterprise
   const [billingPeriod, setBillingPeriod] = useState('monthly'); // monthly | annual
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [cardName, setCardName] = useState('');
 
   // Step 4: BOQ Template
   const [boqFile, setBoqFile] = useState<File | null>(null);
+  const [importNote, setImportNote] = useState('');
 
   // Step 5: Final Login
   const [loginPassword, setLoginPassword] = useState('');
@@ -77,27 +74,6 @@ function OnboardingWizard() {
   const getPlanPrice = (planKey: 'starter' | 'growth' | 'enterprise') => {
     const plan = plans[planKey];
     return billingPeriod === 'monthly' ? `$${plan.monthlyPrice}/mo` : `$${plan.annualPrice}/yr`;
-  };
-
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').substring(0, 16);
-    // Add spaces every 4 digits
-    const formatted = val.replace(/(\d{4})(?=\d)/g, '$1 ');
-    setCardNumber(formatted);
-  };
-
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').substring(0, 4);
-    if (val.length >= 2) {
-      setCardExpiry(`${val.substring(0, 2)}/${val.substring(2, 4)}`);
-    } else {
-      setCardExpiry(val);
-    }
-  };
-
-  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, '').substring(0, 4);
-    setCardCvc(val);
   };
 
   const handleNextStep = () => {
@@ -157,13 +133,41 @@ function OnboardingWizard() {
       if (loginRes?.error) {
         setError('Configurations saved, but sign-in failed. Please go to the sign-in page to log in.');
         setIsLoading(false);
-      } else {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/board?onboarding=true');
-          router.refresh();
-        }, 1500);
+        return;
       }
+
+      // 3. If a BOQ file was chosen in step 4, create the first project and
+      // import it now that we have an authenticated session.
+      let firstProjectId = '';
+      if (boqFile && configData.companyId) {
+        try {
+          const projRes = await fetch('/api/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: boqFile.name.replace(/\.(xlsx|csv)$/i, ''),
+              companyId: configData.companyId,
+            }),
+          });
+          const project = await projRes.json();
+          if (!projRes.ok) throw new Error(project.error || 'Project creation failed');
+
+          const fd = new FormData();
+          fd.append('file', boqFile);
+          const impRes = await fetch(`/api/projects/${project.id}/import-boq`, { method: 'POST', body: fd });
+          if (!impRes.ok) throw new Error((await impRes.json().catch(() => ({})))?.error || 'BOQ import failed');
+          firstProjectId = project.id;
+        } catch (impErr: any) {
+          console.error('Onboarding BOQ import failed:', impErr);
+          setImportNote(`BOQ import did not finish (${impErr.message}). You can import it from the Projects page.`);
+        }
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        router.push(firstProjectId ? `/projects/${firstProjectId}` : '/board?onboarding=true');
+        router.refresh();
+      }, 1500);
     } catch (err) {
       console.error(err);
       setError('An unexpected network error occurred.');
@@ -415,66 +419,19 @@ function OnboardingWizard() {
                 })}
               </div>
 
-              {/* Simulated Credit Card form */}
-              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200/60 mt-4 space-y-4">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-slate-500" /> Billing Details (Simulated Gateway)
+              {/* 14-day free trial — no card collected. Card payments arrive with the
+                  payment-provider integration (hosted checkout + webhook), never a raw form. */}
+              <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-200/60 mt-4 space-y-3">
+                <h3 className="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 14-day free trial — no card required
                 </h3>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="cardName">Cardholder Name</Label>
-                  <Input
-                    id="cardName"
-                    type="text"
-                    placeholder="Ahmad Raza"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    className="bg-white border-slate-200"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <div className="relative">
-                    <Input
-                      id="cardNumber"
-                      type="text"
-                      placeholder="4000 1234 5678 9010"
-                      value={cardNumber}
-                      onChange={handleCardNumberChange}
-                      className="bg-white border-slate-200 pl-10"
-                    />
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="cardExpiry">Expiry Date</Label>
-                    <Input
-                      id="cardExpiry"
-                      type="text"
-                      placeholder="MM/YY"
-                      value={cardExpiry}
-                      onChange={handleExpiryChange}
-                      className="bg-white border-slate-200"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="cardCvc">CVC</Label>
-                    <Input
-                      id="cardCvc"
-                      type="password"
-                      placeholder="•••"
-                      value={cardCvc}
-                      onChange={handleCvcChange}
-                      className="bg-white border-slate-200"
-                    />
-                  </div>
-                </div>
-                <p className="text-[10px] text-slate-400 italic">
-                  Note: This is a dummy subscription setup. No real charges will be made. You can input any fake credit card details to pass.
+                <p className="text-xs text-emerald-800 leading-relaxed">
+                  Your workspace starts on a full-featured trial of the plan you pick. When the
+                  trial ends, pay by bank transfer (PKR invoicing available) or card — we&apos;ll
+                  remind you inside the portal. Nothing is charged today.
+                </p>
+                <p className="text-[10px] text-emerald-700/70">
+                  You can switch plans at any time; limits apply per plan from day one.
                 </p>
               </div>
 
@@ -483,7 +440,7 @@ function OnboardingWizard() {
                   <ArrowLeft className="h-4 w-4 mr-2" /> Back
                 </Button>
                 <Button onClick={handleNextStep} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-6 text-sm font-semibold transition-all">
-                  Next Step <ArrowRight className="h-4 w-4 ml-2" />
+                  Start Free Trial <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
             </div>
@@ -531,9 +488,9 @@ function OnboardingWizard() {
               </div>
 
               <div className="flex justify-center">
-                <a 
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
+                <a
+                  href="/api/boq/template"
+                  download
                   className="text-xs text-orange-600 font-semibold hover:underline flex items-center gap-1.5"
                 >
                   Download Sample BOQ Template
@@ -545,7 +502,7 @@ function OnboardingWizard() {
                   <ArrowLeft className="h-4 w-4 mr-2" /> Back
                 </Button>
                 <Button onClick={handleNextStep} className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-6 text-sm font-semibold transition-all">
-                  Skip for Now <ArrowRight className="h-4 w-4 ml-2" />
+                  {boqFile ? 'Continue with Import' : 'Skip for Now'} <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
             </div>
@@ -566,7 +523,12 @@ function OnboardingWizard() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-900">Workspace Configured!</h3>
-                    <p className="text-sm text-slate-500 mt-1">Redirecting you to the project board...</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {boqFile && !importNote ? 'First project imported. Redirecting you to it...' : 'Redirecting you to the project board...'}
+                    </p>
+                    {importNote && (
+                      <p className="mt-2 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{importNote}</p>
+                    )}
                   </div>
                   <Loader2 className="h-6 w-6 animate-spin text-orange-500 mx-auto mt-4" />
                 </div>
