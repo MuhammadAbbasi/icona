@@ -27,7 +27,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-              <img src="/favicon.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+              <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <div className="text-white font-bold text-lg leading-none">ICON</div>
@@ -84,7 +84,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="h-9 w-9 rounded-xl overflow-hidden flex-shrink-0">
-              <img src="/favicon.svg" alt="ICONA logo" className="h-full w-full object-cover" />
+              <img src="/logo.svg" alt="ICONA logo" className="h-full w-full object-cover" />
             </div>
             <span className="font-bold text-foreground">ICON Services</span>
           </div>
