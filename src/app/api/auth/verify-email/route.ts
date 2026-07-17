@@ -5,7 +5,7 @@ import { hashResetCode, safeCompareHash } from '@/lib/password';
 // Clicked from the verification email. On success: mark verified, consume the
 // token, and resume the flow at the onboarding wizard.
 export async function GET(request: Request) {
-  const base = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const base = process.env.NEXTAUTH_URL || 'http://localhost:4266';
   const fail = NextResponse.redirect(`${base}/login?error=VerificationInvalid`);
 
   try {

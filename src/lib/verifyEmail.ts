@@ -18,7 +18,7 @@ export async function sendVerificationEmail(email: string, name: string) {
     create: { email, token: hashed, expiresAt },
   });
 
-  const base = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const base = process.env.NEXTAUTH_URL || 'http://localhost:4266';
   const link = `${base}/api/auth/verify-email?token=${rawToken}&email=${encodeURIComponent(email)}`;
 
   await sendEmail({
