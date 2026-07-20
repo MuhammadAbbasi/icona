@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, description, companyId, ownerCompanyId, status, priority, startDate, endDate, budget, domains } = body;
+    const { name, description, companyId, ownerCompanyId, status, priority, startDate, endDate, budget, currency, domains } = body;
 
     if (!name?.trim() || !companyId) {
       return NextResponse.json({ error: 'Name and companyId are required' }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req: Request) {
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         budget: budget ?? null,
+        currency: currency || null, // null = falls back to the org's baseCurrency
         domains: {
           create: (domains ?? [])
             .filter((d: any) => d.name?.trim())

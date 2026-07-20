@@ -732,7 +732,7 @@ export function GlobalLedger({
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{unpaid ? <span className="text-amber-500">—</span> : t.paymentMethod ?? '-'}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{unpaid ? <span className="text-amber-500">-</span> : t.paymentMethod ?? '-'}</td>
                         <td className={cn('px-4 py-2.5 text-right font-semibold tabular-nums whitespace-nowrap', cfg?.amount)}>
                           {cfg?.sign}{pkr(t.amount)}
                         </td>
@@ -889,9 +889,9 @@ export function GlobalLedger({
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         {l.phone && <p>Phone: {l.phone}</p>}
                         {l.email && <p>Email: {l.email}</p>}
-                        {!l.phone && !l.email && '—'}
+                        {!l.phone && !l.email && '-'}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[12rem]">{l.address || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[12rem]">{l.address || '-'}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-semibold">{pkr(l.totalBorrowed)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-rose-600 font-medium">+{pkr(l.totalInterest)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-emerald-600 font-semibold">{pkr(l.totalPaid)}</td>
@@ -946,9 +946,9 @@ export function GlobalLedger({
                       <td className="px-4 py-3 text-xs text-muted-foreground">
                         {inv.phone && <p>Phone: {inv.phone}</p>}
                         {inv.email && <p>Email: {inv.email}</p>}
-                        {!inv.phone && !inv.email && '—'}
+                        {!inv.phone && !inv.email && '-'}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[12rem]">{inv.address || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[12rem]">{inv.address || '-'}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-semibold">{pkr(inv.totalInvested)}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-amber-600 font-semibold">{pkr(inv.totalPayouts)}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-bold text-foreground">{pkr(inv.netOwed)}</td>

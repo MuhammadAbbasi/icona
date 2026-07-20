@@ -23,12 +23,12 @@ export async function sendVerificationEmail(email: string, name: string) {
 
   await sendEmail({
     to: email,
-    subject: 'Verify your email — ICONA',
+    subject: 'Verify your email - ICONA',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.6;">
         <div style="background-color: #1e293b; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; color: white;">
           <h2 style="margin: 0;">Verify your email</h2>
-          <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">ICONA — Construction ERP + CRM</p>
+          <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">ICONA - Construction ERP + CRM</p>
         </div>
         <div style="background-color: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
           <p>Hi ${name},</p>

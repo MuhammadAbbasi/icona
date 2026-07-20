@@ -3,23 +3,32 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { 
-  Check, 
-  Loader2, 
-  ArrowLeft, 
-  ArrowRight, 
-  CreditCard, 
-  Building, 
-  Users, 
-  FileSpreadsheet, 
-  Globe, 
+import {
+  Check,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  CreditCard,
+  Building,
+  Users,
+  FileSpreadsheet,
+  Globe,
   LayoutGrid,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CURRENCIES } from '@/lib/currencies';
+
+const MIN_LEVELS = 2;
+const MAX_LEVELS = 4;
+const LEVEL_HINTS = ['e.g. Domain, Block, Phase', 'e.g. Task, Element, Group', 'e.g. Subtask, Item, Activity', 'e.g. Step, Detail'];
+type TaxAppliesTo = 'INCOME' | 'EXPENSE' | 'BOTH';
+interface TaxRuleInput { name: string; rate: number; appliesTo: TaxAppliesTo; }
 
 // useSearchParams needs a Suspense boundary for prerender (Next 14 requirement).
 export default function OnboardingPage() {
@@ -46,17 +55,42 @@ function OnboardingWizard() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Step 1: Localization
+  // Step 1: Localization. A project can still override currency individually
+  // later (Project.currency) - this is just the org's reporting default.
   const [currency, setCurrency] = useState('PKR');
   const [timezone, setTimezone] = useState('Asia/Karachi');
-  const [taxRate, setTaxRate] = useState(15);
   const [address, setAddress] = useState('');
+  // Multiple named taxes instead of one flat rate, each scoped to income,
+  // expense, or both (e.g. Sales Tax 15% on income, Withholding Tax 4% on expenses).
+  const [taxRules, setTaxRules] = useState<TaxRuleInput[]>([{ name: 'Sales Tax', rate: 15, appliesTo: 'BOTH' }]);
 
-  // Step 2: Terminology
-  const [level1, setLevel1] = useState('Domain');
-  const [level2, setLevel2] = useState('Task');
-  const [level3, setLevel3] = useState('Subtask');
+  // Step 2: WBS hierarchy - 2 to 4 levels, named by the firm. Domain/Task/Subtask
+  // is the 3-level default; a 4th level nests above Domain, 2 levels drops
+  // Subtask (Task carries the priced line directly).
+  const [levels, setLevels] = useState<string[]>(['Domain', 'Task', 'Subtask']);
   const [inviteEmails, setInviteEmails] = useState('');
+
+  function updateLevel(i: number, name: string) {
+    setLevels((prev) => prev.map((l, idx) => (idx === i ? name : l)));
+  }
+  function addLevel() {
+    if (levels.length >= MAX_LEVELS) return;
+    setLevels((prev) => [...prev, LEVEL_HINTS[prev.length]?.replace('e.g. ', '').split(',')[0] || `Level ${prev.length + 1}`]);
+  }
+  function removeLevel(i: number) {
+    if (levels.length <= MIN_LEVELS) return;
+    setLevels((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function updateTaxRule(i: number, patch: Partial<TaxRuleInput>) {
+    setTaxRules((prev) => prev.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
+  }
+  function addTaxRule() {
+    setTaxRules((prev) => [...prev, { name: '', rate: 0, appliesTo: 'BOTH' }]);
+  }
+  function removeTaxRule(i: number) {
+    setTaxRules((prev) => prev.filter((_, idx) => idx !== i));
+  }
 
   // Step 3: Subscription (14-day free trial, no card collected)
   const [selectedPlan, setSelectedPlan] = useState('growth'); // starter | growth | enterprise
@@ -116,9 +150,9 @@ function OnboardingWizard() {
           orgId,
           currency,
           timezone,
-          taxRate,
           address,
-          terminology: { Domain: level1, Task: level2, Subtask: level3 },
+          taxRules,
+          hierarchyLevels: levels,
           planId: `${selectedPlan}_${billingPeriod}`,
           inviteEmails: inviteEmails.split(',').map(e => e.trim()).filter(Boolean)
         })
@@ -240,43 +274,81 @@ function OnboardingWizard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="currency">Base Currency</Label>
-                  <select 
+                  <select
                     id="currency"
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
                     className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                   >
-                    <option value="PKR">PKR (Pakistani Rupee)</option>
-                    <option value="USD">USD (US Dollar)</option>
-                    <option value="AED">AED (UAE Dirham)</option>
-                    <option value="SAR">SAR (Saudi Riyal)</option>
+                    {CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>{c.code} ({c.name})</option>
+                    ))}
                   </select>
+                  <p className="text-[10px] text-slate-400">Individual projects can use a different currency later.</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="taxRate">Default Sales Tax Rate (%)</Label>
-                  <Input
-                    id="taxRate"
-                    type="number"
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="h-11 border-slate-200"
-                  />
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <select
+                    id="timezone"
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  >
+                    <option value="Asia/Karachi">Asia/Karachi (GMT+5:00)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GMT+4:00)</option>
+                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="timezone">Timezone</Label>
-                <select 
-                  id="timezone"
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
-                >
-                  <option value="Asia/Karachi">Asia/Karachi (GMT+5:00)</option>
-                  <option value="Asia/Dubai">Asia/Dubai (GMT+4:00)</option>
-                  <option value="UTC">UTC (Coordinated Universal Time)</option>
-                </select>
+              <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <Label>Taxes</Label>
+                  <button type="button" onClick={addTaxRule} className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:underline">
+                    <Plus className="h-3.5 w-3.5" /> Add tax
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Define as many taxes as your firm actually applies, each scoped to income, expense, or both - e.g. Sales Tax 15% on income, Withholding Tax 4% on expenses.
+                </p>
+                {taxRules.map((t, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_90px_120px_auto] gap-2 items-center">
+                    <Input
+                      placeholder="Tax name (e.g. Sales Tax)"
+                      value={t.name}
+                      onChange={(e) => updateTaxRule(i, { name: e.target.value })}
+                      className="h-10 border-slate-200"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Rate %"
+                      value={t.rate}
+                      onChange={(e) => updateTaxRule(i, { rate: Number(e.target.value) })}
+                      className="h-10 border-slate-200"
+                    />
+                    <select
+                      value={t.appliesTo}
+                      onChange={(e) => updateTaxRule(i, { appliesTo: e.target.value as TaxAppliesTo })}
+                      className="h-10 px-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 outline-none"
+                    >
+                      <option value="BOTH">Income & Expense</option>
+                      <option value="INCOME">Income only</option>
+                      <option value="EXPENSE">Expense only</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => removeTaxRule(i)}
+                      className="h-10 w-10 grid place-items-center text-slate-400 hover:text-red-500"
+                      aria-label="Remove tax"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                {taxRules.length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No taxes defined - you can add them anytime from Settings.</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -308,45 +380,48 @@ function OnboardingWizard() {
               </div>
               
               <p className="text-sm text-slate-500 leading-relaxed">
-                ICONA organizes project estimates (BOQs) into a hierarchical tree. Customize the names of these levels to match your construction firm's terminology.
+                ICONA organizes project estimates (BOQs) into a hierarchical tree, 2 to 4 levels
+                deep. Name each level to match your firm's terminology, and add or remove levels
+                to match how deep your BOQs actually go.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div className="space-y-1.5">
-                  <Label htmlFor="level1">Level 1 Name</Label>
-                  <Input
-                    id="level1"
-                    type="text"
-                    value={level1}
-                    onChange={(e) => setLevel1(e.target.value)}
-                    className="h-10 border-slate-200"
-                  />
-                  <p className="text-[10px] text-slate-400">e.g. Domain, Block, Phase</p>
+              <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {levels.map((name, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor={`level-${i}`}>Level {i + 1} Name</Label>
+                        {levels.length > MIN_LEVELS && (
+                          <button
+                            type="button"
+                            onClick={() => removeLevel(i)}
+                            className="text-slate-400 hover:text-red-500"
+                            aria-label={`Remove level ${i + 1}`}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <Input
+                        id={`level-${i}`}
+                        type="text"
+                        value={name}
+                        onChange={(e) => updateLevel(i, e.target.value)}
+                        className="h-10 border-slate-200"
+                      />
+                      <p className="text-[10px] text-slate-400">{LEVEL_HINTS[i] || 'e.g. Step, Detail'}</p>
+                    </div>
+                  ))}
                 </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="level2">Level 2 Name</Label>
-                  <Input
-                    id="level2"
-                    type="text"
-                    value={level2}
-                    onChange={(e) => setLevel2(e.target.value)}
-                    className="h-10 border-slate-200"
-                  />
-                  <p className="text-[10px] text-slate-400">e.g. Task, Element, Group</p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="level3">Level 3 Name</Label>
-                  <Input
-                    id="level3"
-                    type="text"
-                    value={level3}
-                    onChange={(e) => setLevel3(e.target.value)}
-                    className="h-10 border-slate-200"
-                  />
-                  <p className="text-[10px] text-slate-400">e.g. Subtask, Item, Activity</p>
-                </div>
+                {levels.length < MAX_LEVELS && (
+                  <button
+                    type="button"
+                    onClick={addLevel}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:underline"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add a level ({levels.length}/{MAX_LEVELS})
+                  </button>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -444,11 +519,11 @@ function OnboardingWizard() {
                   payment-provider integration (hosted checkout + webhook), never a raw form. */}
               <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-200/60 mt-4 space-y-3">
                 <h3 className="font-bold text-emerald-900 text-sm flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 14-day free trial — no card required
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 14-day free trial, no card required
                 </h3>
                 <p className="text-xs text-emerald-800 leading-relaxed">
                   Your workspace starts on a full-featured trial of the plan you pick. When the
-                  trial ends, pay by bank transfer (PKR invoicing available) or card — we&apos;ll
+                  trial ends, pay by bank transfer (PKR invoicing available) or card; we&apos;ll
                   remind you inside the portal. Nothing is charged today.
                 </p>
                 <p className="text-[10px] text-emerald-700/70">
@@ -558,7 +633,7 @@ function OnboardingWizard() {
                   <p className="text-sm text-slate-500 leading-relaxed">
                     {needsPassword
                       ? "You're almost there! Please confirm the password you created at signup to deploy and log into your dashboard."
-                      : "You're almost there! All settings are ready — confirm below to deploy your workspace and open your dashboard."}
+                      : "You're almost there! All settings are ready: confirm below to deploy your workspace and open your dashboard."}
                   </p>
 
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-2">
@@ -576,7 +651,7 @@ function OnboardingWizard() {
                     </div>
                     <div className="flex justify-between text-xs font-semibold text-slate-600">
                       <span>WBS Hierarchy:</span>
-                      <span className="text-slate-900">{level1} ➔ {level2} ➔ {level3}</span>
+                      <span className="text-slate-900">{levels.join(' ➔ ')}</span>
                     </div>
                   </div>
 
@@ -594,7 +669,7 @@ function OnboardingWizard() {
                         className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
                       />
                       <p className="text-xs text-slate-400">
-                        Forgot it? <a href="/forgot-password" className="text-orange-600 hover:underline font-medium">Reset your password</a> — your setup progress is saved.
+                        Forgot it? <a href="/forgot-password" className="text-orange-600 hover:underline font-medium">Reset your password</a>, your setup progress is saved.
                       </p>
                     </div>
                   )}

@@ -74,7 +74,7 @@ export function ProjectOverviewButton({ projectName, domains, coveredArea, rebat
               <BarChart3 className="h-5 w-5 text-primary" />
               Project Overview
             </DialogTitle>
-            <DialogDescription>{projectName} — cost summary by domain</DialogDescription>
+            <DialogDescription>{projectName}: cost summary by domain</DialogDescription>
           </DialogHeader>
 
           <div className="overflow-x-auto rounded-lg border border-border mt-2">

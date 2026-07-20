@@ -52,7 +52,7 @@ export function AssistantWidget() {
         { role: 'assistant', content: res.ok ? data.reply : (data.error ?? 'Something went wrong.') },
       ]);
     } catch {
-      setMessages([...next, { role: 'assistant', content: 'Network error — please try again.' }]);
+      setMessages([...next, { role: 'assistant', content: 'Network error, please try again.' }]);
     } finally {
       setBusy(false);
     }
@@ -90,7 +90,7 @@ export function AssistantWidget() {
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 text-sm">
             {messages.length === 0 && (
               <p className="text-muted-foreground">
-                Ask me about your payments, project progress, or site photos — e.g.{' '}
+                Ask me about your payments, project progress, or site photos, e.g.{' '}
                 <em>&quot;How much is still receivable on my villa project?&quot;</em>
               </p>
             )}

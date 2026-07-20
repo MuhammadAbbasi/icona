@@ -132,7 +132,7 @@ export function CompleteDialog({
               {!fullyDone && (
                 <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                   <AlertTriangle className="h-3 w-3" />
-                  Partial: {remaining} {unit ?? ''} still remaining — the line stays open so the rest can be logged later.
+                  Partial: {remaining} {unit ?? ''} still remaining. The line stays open so the rest can be logged later.
                 </p>
               )}
             </div>

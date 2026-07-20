@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus, Trash2, Loader2, FolderPlus, Sparkles, FileSpreadsheet,
-  PencilLine, Upload, Square, CheckSquare, Settings2, X
+  PencilLine, Upload, Square, CheckSquare, Settings2, X, UserPlus
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { findBoqTemplate, BOQ_TEMPLATE, TemplateDomain } from '@/lib/templates';
 import { formatPKR, cn } from '@/lib/utils';
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/lib/currencies';
 import type { ParsedBoq } from '@/lib/boqParser';
 
 interface Company { id: string; name: string; type: string; }
@@ -32,16 +33,51 @@ export function AddProjectModal({ open, onOpenChange, companies }: Props) {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  // Local, mutable copy of the companies list: inline "new client" creation
+  // appends to this immediately so the just-created client is selectable
+  // right away, without waiting on the parent page's server data to refresh.
+  const [localCompanies, setLocalCompanies] = useState<Company[]>(companies);
+  useEffect(() => { if (open) setLocalCompanies(companies); }, [open, companies]);
   const [companyId, setCompanyId] = useState('');
   const [ownerCompanyId, setOwnerCompanyId] = useState('');
-  const ownCompanies = companies.filter((c) => c.type === 'MAIN');
-  const clientCompanies = companies.filter((c) => c.type === 'CLIENT');
+  const ownCompanies = localCompanies.filter((c) => c.type === 'MAIN');
+  const clientCompanies = localCompanies.filter((c) => c.type === 'CLIENT');
   const [status, setStatus] = useState('UNDER_REVIEW');
   const [priority, setPriority] = useState('MEDIUM');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [budget, setBudget] = useState('');
-  
+  const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
+
+  // Inline "+ New Client" mini-form, so a client can be added without leaving
+  // project creation.
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientSaving, setNewClientSaving] = useState(false);
+  const [newClientError, setNewClientError] = useState('');
+
+  async function createInlineClient() {
+    if (!newClientName.trim()) { setNewClientError('Client name is required.'); return; }
+    setNewClientSaving(true); setNewClientError('');
+    try {
+      const res = await fetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newClientName.trim(), type: 'CLIENT' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create client');
+      setLocalCompanies((prev) => [...prev, data]);
+      setCompanyId(data.id);
+      setNewClientName('');
+      setNewClientOpen(false);
+    } catch (e: any) {
+      setNewClientError(e.message || 'Failed to create client');
+    } finally {
+      setNewClientSaving(false);
+    }
+  }
+
   // Custom templates fetched from DB
   const [customTemplates, setCustomTemplates] = useState<any[]>([]);
   const [domains, setDomains] = useState<DomainEntry[]>(
@@ -173,7 +209,8 @@ export function AddProjectModal({ open, onOpenChange, companies }: Props) {
   function resetForm() {
     setStep(1); setName(''); setDescription(''); setCompanyId(''); setOwnerCompanyId('');
     setStatus('UNDER_REVIEW'); setPriority('MEDIUM'); setStartDate(''); setEndDate('');
-    setBudget(''); setError('');
+    setBudget(''); setCurrency(DEFAULT_CURRENCY); setError('');
+    setNewClientOpen(false); setNewClientName(''); setNewClientError('');
     setDomains(DEFAULT_DOMAINS.map((name, i) => ({ name, color: DOMAIN_COLORS[i], importTemplate: false })));
     setMethod('manual'); setBoqFile(null); setBoqPreview(null); setSelectedDomains(new Set()); setParsing(false); setIncludeZeroQty(false);
   }
@@ -209,6 +246,7 @@ export function AddProjectModal({ open, onOpenChange, companies }: Props) {
           startDate: startDate || null,
           endDate: endDate || null,
           budget: budget ? parseFloat(budget) : null,
+          currency,
           domains: method === 'manual'
             ? domains
                 .filter((d) => d.name.trim())
@@ -314,15 +352,41 @@ export function AddProjectModal({ open, onOpenChange, companies }: Props) {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Client / Customer *</Label>
-                  <Select value={companyId} onValueChange={setCompanyId}>
-                    <SelectTrigger><SelectValue placeholder="Select client…" /></SelectTrigger>
-                    <SelectContent>
-                      {clientCompanies.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between">
+                    <Label>Client / Customer *</Label>
+                    <button
+                      type="button"
+                      onClick={() => setNewClientOpen((v) => !v)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" /> New client
+                    </button>
+                  </div>
+                  {newClientOpen ? (
+                    <div className="flex gap-2">
+                      <Input
+                        autoFocus
+                        value={newClientName}
+                        onChange={(e) => setNewClientName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); createInlineClient(); } }}
+                        placeholder="New client name"
+                        disabled={newClientSaving}
+                      />
+                      <Button type="button" size="sm" onClick={createInlineClient} disabled={newClientSaving} className="shrink-0">
+                        {newClientSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select value={companyId} onValueChange={setCompanyId}>
+                      <SelectTrigger><SelectValue placeholder="Select client…" /></SelectTrigger>
+                      <SelectContent>
+                        {clientCompanies.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {newClientError && <p className="text-xs text-destructive">{newClientError}</p>}
                 </div>
               </div>
 
@@ -368,9 +432,22 @@ export function AddProjectModal({ open, onOpenChange, companies }: Props) {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="budget">Expected Budget (PKR)</Label>
-                <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 45000000" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="budget">Expected Budget</Label>
+                  <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 45000000" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Currency</Label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.code} ({c.name})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}

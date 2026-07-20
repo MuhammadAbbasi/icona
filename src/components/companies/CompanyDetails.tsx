@@ -108,7 +108,7 @@ export function CompanyDetails({ company, projects, transactions }: Props) {
                   </td>
                   <td className="py-2.5 pr-4"><Badge variant="outline">{p.status.replaceAll('_', ' ')}</Badge></td>
                   <td className="py-2.5 pr-4">{Math.round(p.progress)}%</td>
-                  <td className="py-2.5">{p.budget != null ? formatPKR(p.budget) : '—'}</td>
+                  <td className="py-2.5">{p.budget != null ? formatPKR(p.budget) : '-'}</td>
                 </tr>
               ))}
               {projects.length === 0 && (
@@ -137,8 +137,8 @@ export function CompanyDetails({ company, projects, transactions }: Props) {
                 <tr key={t.id}>
                   <td className="py-2.5 pr-4 whitespace-nowrap">{new Date(t.date).toLocaleDateString('en-GB')}</td>
                   <td className="py-2.5 pr-4"><Badge variant={TXN_BADGE[t.type] ?? 'secondary'}>{t.type}</Badge></td>
-                  <td className="py-2.5 pr-4">{t.project?.name ?? '—'}</td>
-                  <td className="py-2.5 pr-4 max-w-[280px] truncate">{t.description || t.category || '—'}</td>
+                  <td className="py-2.5 pr-4">{t.project?.name ?? '-'}</td>
+                  <td className="py-2.5 pr-4 max-w-[280px] truncate">{t.description || t.category || '-'}</td>
                   <td className="py-2.5 text-right font-medium whitespace-nowrap">{formatPKR(t.amount)}</td>
                 </tr>
               ))}

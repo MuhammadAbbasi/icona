@@ -169,3 +169,14 @@ will cause random delivery failures at scale. Replace with Resend:
       is Active LTS and the recommended target. Cost is mostly React 19 compat,
       async `params`/`searchParams` (62 route handlers use them), and NextAuth
       v4 compatibility - budget a full day + a full smoke pass, not an afternoon.
+
+## LLM Model Integration & AI Copilot
+- [ ] **Model Selection**: Gemini 1.5 Flash (default recommendation; ultra-low cost ~$0.50/mo per active user) or Claude 3.5 Haiku ($10/mo budget).
+- [ ] **Subscription Tiering**:
+      - Starter & Growth: $10/month per tenant AI add-on.
+      - Enterprise: Included FREE in the $75/month subscription tier.
+- [ ] **Strict Tenant Isolation**: Copilot queries pass exclusively through `tenantPrisma` session context (`orgId`). The LLM never receives raw SQL access or cross-tenant data.
+- [ ] **Core Capability Scope**:
+      - Query projects, BOQ, ledger, budget vs actual, site attendance, and CRM leads.
+      - Intent detection & UI Modal Pre-filling: Detect actions like "Create project", "Record payout", or "Add subcontractor", return structured JSON payload, and automatically trigger creation modals with pre-filled form fields.
+

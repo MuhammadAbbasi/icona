@@ -163,7 +163,7 @@ export default function SignupPage() {
                 Click it to activate your workspace and continue with onboarding.
               </p>
               <p className="mt-4 text-xs text-slate-400">
-                The link is valid for 24 hours. No email? Check your spam folder, or try signing in —
+                The link is valid for 24 hours. No email? Check your spam folder, or try signing in;
                 we will send you a fresh link.
               </p>
             </div>

@@ -73,7 +73,7 @@ export const authOptions: NextAuthOptions = {
               console.error('Verification re-send failed:', e)
             );
           }
-          throw new Error('Please verify your email first — we have sent you a verification link.');
+          throw new Error('Please verify your email first. We have sent you a verification link.');
         }
 
         rateLimitReset(`web-login:email:${email}`); // a successful login clears the account counter

@@ -77,12 +77,19 @@ model Organization {
   baseCurrency  String   @default("PKR")     // ISO 4217. Reporting currency; immutable after first posting.
   locale        String   @default("en-PK")
   timezone      String   @default("Asia/Karachi")
-  taxRate       Decimal  @default(15) @db.Decimal(9, 4)
+  taxRate       Decimal  @default(15) @db.Decimal(9, 4) // legacy single-rate fallback; superseded by TaxRule for new orgs
+
+  // WBS hierarchy depth (2-4). Domain -> Task -> Subtask is the depth-3 default;
+  // depth 2 drops Subtask (Task carries the priced line directly, already
+  // supported — see Task.unit/quantity/rate); depth 4 adds one level above
+  // Domain via Domain.parentId (a "domain group").
+  hierarchyDepth Int     @default(3)
 
   logoUrl       String?
   primaryColor  String?
-  terminology   Json?    // {"Domain":"Package"} — superseded by WbsLevel for tree levels
+  terminology   Json?    // {"levels":["Domain","Task","Subtask"]} — ordered, length == hierarchyDepth
   modules       Json?    // {"ledger":true,"inventory":false,"timesheets":true}
+  taxRules      TaxRule[]
 
   planId        String?
   trialEndsAt   DateTime?
@@ -108,6 +115,22 @@ model Organization {
   @@index([status])
 }
 
+// A named tax an org's invoices/ledger apply — e.g. "Sales Tax" 15% on income,
+// "Withholding Tax" 4% on expenses. Replaces a single flat rate so a firm can
+// define as many taxes as it actually deals with, each scoped to income,
+// expense, or both. Captured at onboarding; editable later from Settings.
+model TaxRule {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name      String
+  rate      Decimal  @db.Decimal(9, 4)
+  appliesTo String   @default("BOTH") // INCOME | EXPENSE | BOTH
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+}
 
 model Membership {
   id        String       @id @default(cuid())
@@ -258,6 +281,7 @@ model Project {
   coveredArea Float?
   rebate      Float?
   sstRate     Float?    @default(15)
+  currency    String?   // ISO 4217; null = use the org's baseCurrency. Lets one org run multi-currency projects.
   companyId      String
   company        Company   @relation(fields: [companyId], references: [id])
   ownerCompanyId String?
@@ -388,10 +412,17 @@ model Domain {
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks       Task[]
+  // Optional nesting for orgs configured with a 4th WBS level (a "domain
+  // group" above Domain). Null for the default 3-level org — existing data
+  // and behavior are unaffected either way.
+  parentId    String?
+  parent      Domain?  @relation("DomainGroup", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Domain[] @relation("DomainGroup")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([projectId])
+  @@index([parentId])
 }
 
 model Task {

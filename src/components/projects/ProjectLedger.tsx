@@ -727,7 +727,7 @@ export function ProjectLedger({
                         </td>
                         <td className="px-4 py-2.5 text-muted-foreground">
                           {unpaid ? (
-                            <span className="text-amber-500">—</span>
+                            <span className="text-amber-500">-</span>
                           ) : (
                             t.paymentMethod ?? '-'
                           )}

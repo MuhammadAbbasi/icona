@@ -94,7 +94,7 @@ export function CompaniesManager({ initialCompanies, isAdmin }: { initialCompani
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold hover:underline">{c.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{c.email || c.phone || '—'}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{c.email || c.phone || '-'}</span>
                 </span>
               </Link>
               <Badge variant={TYPE_BADGE[c.type] ?? 'secondary'}>{c.type}</Badge>

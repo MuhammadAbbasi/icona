@@ -151,7 +151,12 @@ export const SITE_CONFIG = {
       monthly: 75,
       tagline: 'For established firms that need it all',
       limits: ['Unlimited projects', 'Unlimited team members'],
-      features: ['Everything in Growth', 'Investor & lender registry', 'Custom onboarding & training', 'Dedicated support'],
+      features: [
+        'Everything in Growth',
+        'Free ICONA AI Copilot included ($10/mo value)',
+        'Investor & lender registry',
+        'Custom onboarding & dedicated support',
+      ],
       cta: 'Talk to us',
       ctaHref: '#contact',
       featured: false,
