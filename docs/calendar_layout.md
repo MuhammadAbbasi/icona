@@ -10,13 +10,18 @@ decision, and Odoo-style filtering. Grounded in the actual schema
 
 | Question | Decision |
 |---|---|
-| What's on the calendar | **Both**: auto-populated from existing dates (task/subtask due dates, project end dates, logged site visits) **and** manually created standalone events. |
+| What's on the calendar | **Both**: auto-populated from existing dates (task due dates, project end dates, logged site visits) **and** manually created standalone events. |
 | Visibility control granularity | **Per-project, per-role toggle** (not per individual external user). |
 | Can external roles write to the calendar | **View-only.** Freelancers/subcontractors/clients never create or edit entries. |
 | UI richness | **Full calendar grid** - month/week/day views with drag-to-reschedule. |
 | External logins | **Path A confirmed** - freelancers and subcontractors get real personal credentials, read-only, fenced to their assigned projects. |
 | How the calendar gets its data | **Materialized + explicit sync button.** Not re-derived by query on every page load. |
 | Filtering | **Odoo-style**: all-projects / one-project, all-employees / one-employee, plus event-type toggles. |
+
+> **Correction to row 1**, which earlier read "task/subtask due dates":
+> `Subtask` has no `dueDate` field (only `completed`/`completedAt`), so
+> subtasks cannot produce deadline events. The three derivable sources are
+> `Task.dueDate`, `Project.endDate` and `SiteVisit.date`.
 
 ---
 
@@ -43,32 +48,51 @@ So Path A is: two new role strings, one nullable `userId` on
 building, securing, and revoking a parallel token system - Path B is now
 the *more* expensive option, so it is dropped.
 
-### Access scope - one helper, not per-route checks
+### Access scope - extend the existing helper, do NOT write a new one
+
+**Correction to an earlier draft of this doc**, which proposed a new
+`src/lib/project-scope.ts` exporting `visibleProjectIds()`. That was written
+without checking, and it was wrong: `src/lib/projectAccess.ts` already
+exists and already does this job.
 
 ```ts
-// src/lib/project-scope.ts
-// The single source of truth for "which projects may this user see?".
-// Every calendar/API route calls this instead of re-deriving scope inline.
-export async function visibleProjectIds(user: SessionUser): Promise<string[] | 'ALL'> {
-  switch (user.role) {
-    case 'SUPER_ADMIN': case 'ADMIN': case 'MANAGER':
-      return 'ALL'                      // within their org - orgId filter still applies
-    case 'CLIENT':
-      return projectIdsForCompany(user.companyId)
-    case 'FREELANCER':
-      return user.projectId ? [user.projectId] : []
-    case 'SUBCONTRACTOR':
-      return engagementProjectIds(user.id)   // via Subcontractor.userId -> engagements
-    default:                                  // EMPLOYEE
-      return assignedProjectIds(user.id)      // team memberships + assigned tasks
-  }
+// src/lib/projectAccess.ts - ALREADY IN THE REPO
+export function getProjectScope(user: ApiUser): Record<string, any>
+export async function canAccessProject(user: ApiUser, projectId: string): Promise<boolean>
+```
+
+It already handles `ADMIN`/`MANAGER` (unrestricted), `CLIENT` (own company),
+`EMPLOYEE` **and `FREELANCER`** (engaged projects OR projects containing an
+assigned task) - and it already applies `deletedAt: null`, which a
+hand-written replacement would almost certainly forget, quietly exposing
+soft-deleted projects on the calendar.
+
+A second access helper alongside it would be two sources of truth for the
+same security boundary - the exact failure mode where one gets a fix and the
+other doesn't. So:
+
+- **Add one case** to `getProjectScope` for `SUBCONTRACTOR`:
+  `{ ...base, subcontractorEngagements: { some: { subcontractor: { userId: user.id } } } }`
+- **Add nothing else.** No new file, no `'ALL'` sentinel, no id-array
+  materialization.
+
+The calendar query then uses it as a *relation* filter, so there is never a
+list of project ids to build or pass around:
+
+```ts
+where: {
+  orgId: user.orgId,
+  startAt: { gte: from, lte: to },
+  OR: [
+    { project: { is: getProjectScope(user) } },   // project events, scoped
+    { projectId: null, createdById: user.id },    // personal events
+  ],
 }
 ```
 
-One function, one place to audit. `ponytail:` it returns `'ALL'` rather than
-a full id list for staff so the caller can skip the `projectId in (...)`
-clause entirely - swap to explicit ids if per-project staff restrictions
-ever land.
+`ProjectCalendarVisibility` is then a second `AND` clause layered on top for
+external roles only - scope decides *which projects*, visibility decides
+*whether the calendar of those projects is shared*.
 
 Schema delta for Path A - one field:
 
@@ -96,10 +120,10 @@ server-side in the route, not by hiding buttons.
 ## 1. Data model (additive, no changes to existing models except one relation)
 
 ```prisma
-// A calendar entry. Auto-derived rows (from Task/Subtask due dates, Project
-// end dates, SiteVisit) are represented as CalendarEvent rows too - written
-// by the same code path that creates/updates the source record, so there is
-// one query to render a calendar, not four merged in application code.
+// A calendar entry. Auto-derived rows (from Task.dueDate, Project.endDate,
+// SiteVisit.date) are represented as CalendarEvent rows too - rebuilt by
+// syncCalendar (section 1b), so there is one query to render a calendar,
+// not four merged in application code.
 model CalendarEvent {
   id           String   @id @default(cuid())
   orgId        String
@@ -124,8 +148,10 @@ model CalendarEvent {
   // without ever touching a row a human typed. Null = authored by a person.
   sourceKey    String?            // e.g. "TASK_DEADLINE:clx123"
 
-  createdById  String
-  createdBy    User     @relation("CalendarEventCreator", fields: [createdById], references: [id])
+  // Nullable: derived rows have no human author. Making this required would
+  // force sync to invent a "system user" to attribute machine-made rows to.
+  createdById  String?
+  createdBy    User?    @relation("CalendarEventCreator", fields: [createdById], references: [id])
   // Attendees: who this event is "individual" to, beyond the shared project view.
   // Empty = visible to everyone with project access (a true "shared" event).
   attendees    CalendarEventAttendee[]
@@ -225,6 +251,14 @@ model Organization {
    showing "Synced 4 minutes ago" from `calendarSyncedAt`.
 2. **Nightly** - called from the existing `deadline-checker.ts` cron before
    it sends its digest, so an org that never presses the button still self-heals.
+
+**Watch out: `Project.orgId` is nullable** (`schema.prisma:305`) - legacy
+rows from before multi-tenancy have it unset. A sync keyed on `orgId` will
+silently skip those projects and their tasks, and the calendar will look
+mysteriously empty for an org that still has legacy data. Either backfill
+`orgId` first or resolve the org via `project.company.orgId` as a fallback.
+Assert a non-zero derived-row count in the sync self-check so this shows up
+as a failure rather than an empty grid.
 
 `ponytail:` full rebuild per org, single transaction. Fine at ICONA's scale
 (SME projects, thousands of rows, not millions). If an org's sync ever gets
@@ -338,7 +372,7 @@ New sidebar item in `Sidebar.tsx`'s `navItems`, positioned right after
 
 `CLIENT`, `FREELANCER` and `SUBCONTRACTOR` are all included - each has real
 login under Path A, and each sees a view-only calendar fenced by
-`visibleProjectIds()` (section 0).
+`getProjectScope()` (section 0).
 
 For freelancers and subcontractors the calendar is likely their *entire*
 sidebar - they have no business on the board, ledger, BOQ or settings. Their
@@ -371,7 +405,7 @@ running and nothing platform-wide is silently broken.
 | SUPER_ADMIN | Not the tenant calendar - see section 4's cross-tenant health summary instead | N/A | N/A | Per-org, from `/admin` |
 
 Two gates, both server-side, both enforced in the route rather than the UI:
-**scope** (`visibleProjectIds()`, section 0) decides which events come back
+**scope** (`getProjectScope()`, section 0) decides which events come back
 at all; **`ProjectCalendarVisibility`** then decides whether an external
 role sees a project it's technically attached to. An external role must pass
 both. Note the safe default - absence of a visibility row means *not*
@@ -424,9 +458,9 @@ over data that already has an owner, not a second source of truth for it.
 ## 7. Suggested build order
 
 1. Schema: `CalendarEvent`, `CalendarEventAttendee`, `ProjectCalendarVisibility`, `User.deadlineReminderDays`, `Organization.calendarSyncedAt`, `Subcontractor.userId`. `db push`.
-2. `src/lib/project-scope.ts` - `visibleProjectIds()`. **Ships with a test**: one `test_*` asserting each role gets exactly the projects it should and no more, including that an unknown role gets `[]`. This is the security boundary for the whole feature; it is the one piece here that must not be trusted to review alone.
+2. **Extend** `src/lib/projectAccess.ts` with a `SUBCONTRACTOR` case (section 0). Do not create a second scope helper. **Ships with a test** asserting each role gets exactly the projects it should and no more, including that an unknown role falls through to the restrictive branch rather than the unrestricted one. This is the security boundary for the whole feature; it is the one piece that must not be trusted to review alone. Add the new test file to the `"test"` script in `package.json` - it hardcodes its file list, so a new test that isn't added there never runs in CI.
 3. `src/lib/calendar-sync.ts` - `syncCalendar(orgId)` + `POST /api/calendar/sync`. Self-check: run it twice, assert the row count is stable (idempotent) and that an authored event survives both runs untouched.
-4. `/api/calendar?from=&to=` (list, scoped by `visibleProjectIds()` + `ProjectCalendarVisibility`) + `/api/calendar/events` (authored CRUD, staff only).
+4. `/api/calendar?from=&to=` (list, scoped by `getProjectScope()` + `ProjectCalendarVisibility`) + `/api/calendar/events` (authored CRUD, staff only).
 5. `/calendar` page: FullCalendar grid, sync button with "synced N ago", filter rail (section 2b), sidebar nav entry.
 6. Roles: `FREELANCER` / `SUBCONTRACTOR` added to the role comment and nav gating; credential issuing reuses the existing invite + `emailVerified` flow.
 7. Deadline-checker extension (Task.dueDate) + nightly `syncCalendar` call + `deadlineReminderDays` preference in Settings.
