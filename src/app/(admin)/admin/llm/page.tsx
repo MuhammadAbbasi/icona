@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { LLMUsageChart } from '@/components/admin/LLMUsageChart';
 import { TenantLLMTable, TenantLLMUsage } from '@/components/admin/TenantLLMTable';
+import { LLMModelManager } from '@/components/admin/LLMModelManager';
 import { Cpu, Zap, RefreshCw, Server, CheckCircle2, ShieldCheck, DollarSign } from 'lucide-react';
 
 interface LLMData {
@@ -28,6 +29,12 @@ interface LLMData {
     errorRatePercent: number;
   };
   tenants: TenantLLMUsage[];
+}
+
+function formatTokens(num: number = 0): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toLocaleString();
 }
 
 export default function AdminLLMPage() {
@@ -67,8 +74,8 @@ export default function AdminLLMPage() {
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <AdminHeader
-        title="LLM AI Copilot Telemetry & Infrastructure"
-        subtitle="Monitor token usage, model latency, API costs, and switch between Local GPU and Cloud engines"
+        title="LLM AI Copilot Telemetry & Model Management"
+        subtitle="Configure custom LLM models, set tier limitations, monitor token telemetry, and define AI guardrails"
       />
 
       <main className="p-6 space-y-6 flex-1">
@@ -124,9 +131,11 @@ export default function AdminLLMPage() {
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <span className="text-xs text-slate-500 font-medium uppercase">Total Tokens (Month)</span>
             <span className="text-2xl font-bold text-[#0F172A] block mt-1">
-              {loading ? '...' : '6.20M'}
+              {loading ? '...' : formatTokens(data?.telemetry.totalTokensMonth)}
             </span>
-            <span className="text-[11px] text-slate-400 mt-1 block">4.92M Prompt • 1.28M Completion</span>
+            <span className="text-[11px] text-slate-400 mt-1 block">
+              {formatTokens(data?.telemetry.inputTokensMonth)} Prompt • {formatTokens(data?.telemetry.outputTokensMonth)} Completion
+            </span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -134,7 +143,9 @@ export default function AdminLLMPage() {
             <span className="text-2xl font-bold text-emerald-600 block mt-1">
               ${loading ? '...' : data?.telemetry.estCostUsd} USD
             </span>
-            <span className="text-[11px] text-slate-400 mt-1 block">≈ PKR {data?.telemetry.estCostPkr}</span>
+            <span className="text-[11px] text-slate-400 mt-1 block">
+              {data?.activeEngine.provider === 'ollama' ? 'Self-Hosted Local GPU ($0.00)' : `≈ PKR ${data?.telemetry.estCostPkr}`}
+            </span>
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -153,6 +164,9 @@ export default function AdminLLMPage() {
             <span className="text-[11px] text-slate-400 mt-1 block">Queue Depth: 0 requests</span>
           </div>
         </div>
+
+        {/* LLM Model Registry, Hyperparameters & Tier Limitations Controls */}
+        <LLMModelManager />
 
         {/* Chart Section */}
         <LLMUsageChart />

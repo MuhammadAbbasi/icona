@@ -1,20 +1,17 @@
-// POST /api/assistant — the client-facing AI assistant.
-// Backed by OpenRouter (free NVIDIA Nemotron, tool + vision capable).
-// Stateless: the widget sends the visible conversation each turn; we run the
-// tool loop server-side and return the final text answer.
+// POST /api/assistant — the client-facing & admin-facing AI assistant.
+// Reads active LLM engine settings, base URLs, API keys, max tokens, temperature,
+// and prompt guardrails configured by Super Admin in System Settings.
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getApiUser, type ApiUser } from '@/lib/apiAuth';
 import { withTenantContext } from '@/lib/tenantPrisma';
 import { assistantTools, runAssistantTool } from '@/lib/assistant';
+import { prisma } from '@/lib/prisma';
+import { decryptSecret } from '@/lib/crypto';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
-
-const DEFAULT_BASE_URL = process.env.LLM_BASE_URL || 'http://192.168.1.40:11434/v1';
-const DEFAULT_MODEL = process.env.LLM_MODEL || 'qwen2.5:7b-instruct';
-const API_KEY = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || 'ollama';
 
 const bodySchema = z.object({
   messages: z
@@ -28,10 +25,58 @@ const bodySchema = z.object({
     .max(40),
 });
 
-function systemPrompt(user: ApiUser): string {
-  return [
+async function getLLMConfig() {
+  const settings = await prisma.systemSetting.findMany({
+    where: {
+      key: {
+        in: [
+          'llm_active_provider',
+          'llm_active_model',
+          'llm_custom_models',
+          'llm_max_tokens',
+          'llm_temperature',
+          'llm_system_prompt_override',
+        ],
+      },
+    },
+  });
+
+  const map = settings.reduce((acc, item) => {
+    acc[item.key] = item.value;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const provider = map.llm_active_provider || process.env.LLM_PROVIDER || 'ollama';
+  const model = map.llm_active_model || process.env.LLM_MODEL || 'qwen2.5:7b-instruct';
+  const maxTokens = parseInt(map.llm_max_tokens || '2048', 10);
+  const temperature = parseFloat(map.llm_temperature || '0.2');
+  const promptOverride = map.llm_system_prompt_override || '';
+
+  let baseUrl = process.env.LLM_BASE_URL || (provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://generativelanguage.googleapis.com');
+  let apiKey = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || 'ollama';
+
+  if (map.llm_custom_models) {
+    try {
+      const models = JSON.parse(map.llm_custom_models);
+      const active = models.find((m: any) => m.provider === provider && m.model === model) || models[0];
+      if (active) {
+        if (active.baseUrl) baseUrl = active.baseUrl;
+        if (active.apiKey && active.apiKey !== '••••••••') {
+          apiKey = decryptSecret(active.apiKey);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse custom LLM models:', e);
+    }
+  }
+
+  return { provider, model, baseUrl, apiKey, maxTokens, temperature, promptOverride };
+}
+
+function buildSystemPrompt(user: ApiUser, promptOverride: string): string {
+  const baseRules = [
     'You are the ICONA Assistant, built into the ICONA construction ERP & CRM.',
-    `The signed-in user's role is ${user.role}. All money is PKR (Pakistani Rupees) — format like "PKR 1,250,000".`,
+    `The signed-in user's role is ${user.role}. All money is PKR (Pakistani Rupees) - format like "PKR 1,250,000".`,
     '',
     '### MULTILINGUAL & ROMAN URDU COMPREHENSION RULES:',
     '1. Users will write in English, Urdu script (اردو), or Roman Urdu (e.g., "Canal Plaza ka kitna kharcha hua hai?", "Naya project add karo").',
@@ -48,85 +93,109 @@ function systemPrompt(user: ApiUser): string {
     '4. Language matching: Respond in natural Roman Urdu if the user typed in Roman Urdu, in Urdu script if typed in Urdu script, or English if typed in English.',
     '',
     '### DATA INTEGRITY & TOOL USAGE:',
-    'Answer ONLY from tool data — never invent figures, projects or photos.',
+    'Answer ONLY from tool data - never invent figures, projects or photos.',
     'If the user names a project, resolve it with list_projects first.',
     'When asked about a photo or site work, use list_photos then view_photo to visually inspect it.',
     'Be concise, accurate, and direct.',
-  ].join('\n');
+  ];
+
+  if (promptOverride && promptOverride.trim()) {
+    baseRules.push('', '### SUPER ADMIN GUARDRAIL INSTRUCTIONS:', promptOverride.trim());
+  }
+
+  return baseRules.join('\n');
 }
 
 async function runChat(user: ApiUser, history: { role: string; content: string }[]): Promise<string> {
-  const messages: any[] = [{ role: 'system', content: systemPrompt(user) }, ...history];
-  const url = `${DEFAULT_BASE_URL.replace(/\/+$/, '')}/chat/completions`;
+  const config = await getLLMConfig();
+  const messages: any[] = [{ role: 'system', content: buildSystemPrompt(user, config.promptOverride) }, ...history];
+  const url = `${config.baseUrl.replace(/\/+$/, '')}/chat/completions`;
 
   // Fixed 6-iteration tool loop
   for (let i = 0; i < 6; i++) {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
       },
-      body: JSON.stringify({ model: DEFAULT_MODEL, messages, tools: assistantTools }),
+      body: JSON.stringify({
+        model: config.model,
+        messages,
+        tools: assistantTools,
+        tool_choice: 'auto',
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+      }),
     });
-    if (!res.ok) throw new Error(`LLM Server (${url}) ${res.status}: ${(await res.text()).slice(0, 300)}`);
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`LLM provider call failed (${res.status}): ${text.slice(0, 200)}`);
+    }
+
     const data = await res.json();
-    if (data.error) throw new Error(`LLM Error: ${data.error.message ?? JSON.stringify(data.error)}`);
+    const choice = data.choices?.[0]?.message;
+    if (!choice) throw new Error('No choice returned from LLM provider.');
 
-    const message = data.choices?.[0]?.message;
-    if (!message) throw new Error('LLM server returned no message choices');
+    messages.push(choice);
 
-    const toolCalls = message.tool_calls ?? [];
-    if (toolCalls.length === 0) {
-      // Reasoning models may leak <think> blocks into content — strip them.
-      return String(message.content ?? '')
-        .replace(/<think>[\s\S]*?<\/think>/g, '')
-        .trim();
+    if (!choice.tool_calls || choice.tool_calls.length === 0) {
+      return choice.content || 'I have completed your request.';
     }
 
-    messages.push(message);
-    const imageParts: any[] = [];
-    for (const call of toolCalls) {
-      let text: string;
+    // Execute each tool requested by the model
+    for (const toolCall of choice.tool_calls) {
+      const name = toolCall.function?.name;
+      let args: Record<string, any> = {};
       try {
-        const input = JSON.parse(call.function.arguments || '{}');
-        const result = await runAssistantTool(user, call.function.name, input);
-        text = result.text;
-        if (result.imageDataUrl) {
-          imageParts.push({ type: 'image_url', image_url: { url: result.imageDataUrl } });
-        }
-      } catch (err: any) {
-        text = `Tool failed: ${err?.message ?? 'unknown error'}`;
+        args = JSON.parse(toolCall.function?.arguments || '{}');
+      } catch (e) {
+        console.error('Failed to parse tool call arguments:', e);
       }
-      messages.push({ role: 'tool', tool_call_id: call.id, content: text });
-    }
-    // Tool results are text-only on this wire format; images ride in a user turn.
-    if (imageParts.length > 0) {
+
+      let toolResult: any;
+      try {
+        toolResult = await runAssistantTool(user, name, args);
+      } catch (err: any) {
+        toolResult = { error: err.message || 'Tool execution failed' };
+      }
+
       messages.push({
-        role: 'user',
-        content: [{ type: 'text', text: 'Photo(s) from view_photo:' }, ...imageParts],
+        role: 'tool',
+        tool_call_id: toolCall.id,
+        content: JSON.stringify(toolResult),
       });
     }
   }
 
-  return 'I could not finish that in one go — please ask a more specific question.';
+  return 'Completed maximum reasoning iterations.';
 }
 
 export async function POST(req: Request) {
   try {
     const user = await getApiUser(req);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const parsed = bodySchema.safeParse(await req.json());
-    if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    const body = await req.json().catch(() => null);
+    const parsed = bodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid message payload' }, { status: 400 });
+    }
 
-    const run = () => runChat(user, parsed.data.messages);
-    // Explicit tenant context so scoped models work for bearer (mobile) callers too.
-    const reply = user.orgId ? await withTenantContext(user.orgId, run) : await run();
+    // Wrap execution inside tenant context if orgId is set
+    const reply = user.orgId
+      ? await withTenantContext(user.orgId, () => runChat(user, parsed.data.messages))
+      : await runChat(user, parsed.data.messages);
 
     return NextResponse.json({ reply });
   } catch (error: any) {
-    console.error('[POST /api/assistant]', error);
-    return NextResponse.json({ error: error?.message || 'Assistant failed' }, { status: 500 });
+    console.error('[POST /api/assistant] Error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal AI assistant error' },
+      { status: 500 }
+    );
   }
 }

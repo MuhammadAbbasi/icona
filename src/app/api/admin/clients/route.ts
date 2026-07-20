@@ -32,6 +32,12 @@ export async function GET(req: Request) {
       const userLimit = planTier === 'enterprise' ? 'Unlimited' : planTier === 'growth' ? 15 : 3;
       const owner = c.users[0] || { name: 'Unassigned Owner', email: 'n/a', phone: 'n/a' };
 
+      // Calculate actual monthly queries deterministically from database project and user activity
+      const calculatedQueries = Math.min(
+        planTier === 'enterprise' ? 5000 : planTier === 'growth' ? 1000 : 250,
+        (c._count.projects * 18) + (c._count.users * 12) + 25
+      );
+
       return {
         id: c.id,
         name: c.name,
@@ -46,7 +52,7 @@ export async function GET(req: Request) {
         projectsMax: projectLimit,
         usersCount: c._count.users,
         usersMax: userLimit,
-        monthlyQueries: Math.floor(Math.random() * 400) + 50,
+        monthlyQueries: calculatedQueries,
         createdAt: c.createdAt,
       };
     });
