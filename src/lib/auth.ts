@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 // would always fail closed here.
 import { systemPrisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/password';
+import { hashResetCode, safeCompareHash } from '@/lib/password';
 import { rateLimit, rateLimitReset } from '@/lib/rateLimit';
 import { sendVerificationEmail } from '@/lib/verifyEmail';
 
@@ -20,9 +21,13 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        // Set only by the onboarding wizard's final step, in place of password:
+        // proves the user just clicked their emailed verification link, so
+        // re-typing the signup password would be redundant friction.
+        onboardingToken: { label: 'Onboarding token', type: 'text' },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || (!credentials?.password && !credentials?.onboardingToken)) return null;
 
         // S4: throttle web login to blunt brute-force. Per-account and per-IP.
         // ponytail: in-process Map, so ineffective on serverless / multi-instance
@@ -44,8 +49,16 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null;
 
-        const isValid = await verifyPassword(credentials.password, user.password);
-        if (!isValid) return null;
+        if (credentials.onboardingToken) {
+          const record = await systemPrisma.onboardingToken.findUnique({ where: { email } });
+          const valid =
+            record && record.expiresAt > new Date() && safeCompareHash(hashResetCode(credentials.onboardingToken), record.token);
+          if (!valid) return null; // expired/used/wrong -> wizard falls back to the password field
+          await systemPrisma.onboardingToken.delete({ where: { email } }); // single-use
+        } else {
+          const isValid = await verifyPassword(credentials.password!, user.password);
+          if (!isValid) return null;
+        }
 
         if (user.status === 'INACTIVE') return null; // deactivated accounts cannot sign in
 

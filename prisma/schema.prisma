@@ -590,6 +590,14 @@ model MobileRefreshToken {
   @@index([userId])
 }
 
+model OnboardingToken {
+  id        String   @id @default(cuid())
+  email     String   @unique // one live token per email
+  token     String   // sha256 hex of the raw token, never plaintext
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   email     String

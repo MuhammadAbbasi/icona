@@ -35,6 +35,11 @@ function OnboardingWizard() {
   const searchParams = useSearchParams();
   const orgId = searchParams.get('orgId') || '';
   const email = searchParams.get('email') || '';
+  // Minted when the verification link was clicked; proves account ownership so
+  // step 5 can sign in without asking the user to blindly retype their
+  // signup password. Missing/expired (e.g. wizard resumed a day later) falls
+  // back to the password field further down.
+  const onboardingToken = searchParams.get('ob') || '';
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +68,10 @@ function OnboardingWizard() {
 
   // Step 5: Final Login
   const [loginPassword, setLoginPassword] = useState('');
+  // True once a token-based sign-in attempt has failed (expired/used), so the
+  // form reveals the password fallback instead of dead-ending the wizard.
+  const [tokenFailed, setTokenFailed] = useState(false);
+  const needsPassword = !onboardingToken || tokenFailed;
 
   // Plan Details
   const plans = {
@@ -123,17 +132,29 @@ function OnboardingWizard() {
         return;
       }
 
-      // 2. Perform login using NextAuth credentials provider
-      const loginRes = await signIn('credentials', {
-        email,
-        password: loginPassword,
-        redirect: false
-      });
-
-      if (loginRes?.error) {
-        setError('Configurations saved, but sign-in failed. Please go to the sign-in page to log in.');
-        setIsLoading(false);
-        return;
+      // 2. Sign in. Prefer the one-time onboarding token minted when the
+      // verification link was clicked (no password re-entry); fall back to
+      // the typed password if the token is absent or has expired.
+      if (!needsPassword) {
+        const loginRes = await signIn('credentials', { email, onboardingToken, redirect: false });
+        if (loginRes?.error) {
+          setTokenFailed(true);
+          setError('Your setup session has expired. Please enter your account password below to continue.');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        if (!loginPassword) {
+          setError('Please enter your password.');
+          setIsLoading(false);
+          return;
+        }
+        const loginRes = await signIn('credentials', { email, password: loginPassword, redirect: false });
+        if (loginRes?.error) {
+          setError('Incorrect password. Please try again, or reset it from the sign-in page.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       // 3. If a BOQ file was chosen in step 4, create the first project and
@@ -535,7 +556,9 @@ function OnboardingWizard() {
               ) : (
                 <form onSubmit={handleFinalSubmit} className="space-y-5">
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    You're almost there! All settings are ready to be saved. Please verify your identity by entering the password you created to deploy and log into your dashboard.
+                    {needsPassword
+                      ? "You're almost there! Please confirm the password you created at signup to deploy and log into your dashboard."
+                      : "You're almost there! All settings are ready — confirm below to deploy your workspace and open your dashboard."}
                   </p>
 
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 space-y-2">
@@ -557,19 +580,24 @@ function OnboardingWizard() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="loginPassword">Confirm Password</Label>
-                    <Input
-                      id="loginPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      disabled={isLoading}
-                      required
-                      className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
-                    />
-                  </div>
+                  {needsPassword && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="loginPassword">Confirm Password</Label>
+                      <Input
+                        id="loginPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        disabled={isLoading}
+                        required
+                        className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                      />
+                      <p className="text-xs text-slate-400">
+                        Forgot it? <a href="/forgot-password" className="text-orange-600 hover:underline font-medium">Reset your password</a> — your setup progress is saved.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex justify-between pt-4 border-t border-slate-100">
                     <Button type="button" onClick={handlePrevStep} variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl h-11 px-6" disabled={isLoading}>
