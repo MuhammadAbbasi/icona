@@ -2,8 +2,8 @@
   <title>ICONA — construction ERP, monitored</title>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f97316"/>
-      <stop offset="1" stop-color="#c2410c"/>
+      <stop offset="0" stop-color="#1A365D"/>
+      <stop offset="1" stop-color="#2563EB"/>
     </linearGradient>
   </defs>
 
@@ -23,6 +23,6 @@
 
   <!-- monitoring pulse through the beam -->
   <path d="M104 256 H208 l20 -38 28 76 20 -38 H408"
-        fill="none" stroke="#1e293b" stroke-width="20"
+        fill="none" stroke="#38BDF8" stroke-width="20"
         stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -66,6 +66,7 @@ export const config = {
     '/team/:path*',
     '/settings/:path*',
     '/profile/:path*',
+    '/admin/:path*',
     '/api/:path*',
   ],
 };

@@ -15,15 +15,16 @@ import { Button } from '@/components/ui/button';
 import type { Role } from '@/types';
 
 const navItems = [
-  { href: '/board',     label: 'Project Board', icon: LayoutDashboard, roles: ['ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
-  { href: '/projects',  label: 'Projects',      icon: FolderKanban,   roles: ['ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
-  { href: '/companies', label: 'Companies',     icon: Building2,      roles: ['ADMIN','MANAGER'] },
-  { href: '/ledger',    label: 'Finances',      icon: Wallet,        roles: ['ADMIN','MANAGER'] },
-  { href: '/finance/statements', label: 'Statements', icon: Scale,   roles: ['ADMIN','MANAGER'] },
-  { href: '/overheads', label: 'Overheads',     icon: ReceiptText,   roles: ['ADMIN','MANAGER'] },
-  { href: '/teams',     label: 'Teams',         icon: UsersRound,     roles: ['ADMIN','MANAGER'] },
-  { href: '/team',      label: 'Members',       icon: Users,          roles: ['ADMIN','MANAGER'] },
-  { href: '/settings',  label: 'Settings',      icon: Settings,       roles: ['ADMIN'] },
+  { href: '/admin',     label: 'Client Admin Portal', icon: Building2, roles: ['SUPER_ADMIN'] },
+  { href: '/board',     label: 'Project Board', icon: LayoutDashboard, roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
+  { href: '/projects',  label: 'Projects',      icon: FolderKanban,   roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
+  { href: '/companies', label: 'Companies',     icon: Building2,      roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/ledger',    label: 'Finances',      icon: Wallet,        roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/finance/statements', label: 'Statements', icon: Scale,   roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/overheads', label: 'Overheads',     icon: ReceiptText,   roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/teams',     label: 'Teams',         icon: UsersRound,     roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/team',      label: 'Members',       icon: Users,          roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
+  { href: '/settings',  label: 'Settings',      icon: Settings,       roles: ['SUPER_ADMIN','ADMIN'] },
 ];
 
 export function Sidebar() {

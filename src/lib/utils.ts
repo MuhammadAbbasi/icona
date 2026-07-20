@@ -156,6 +156,7 @@ export const PRIORITY_CONFIG = {
 } as const;
 
 export const ROLE_CONFIG = {
+  SUPER_ADMIN:{ label: 'Super Admin',   color: 'bg-blue-600 text-white font-bold' },
   ADMIN:      { label: 'Admin',         color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400' },
   MANAGER:    { label: 'Manager',       color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400' },
   EMPLOYEE:   { label: 'Employee',      color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' },

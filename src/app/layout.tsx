@@ -48,7 +48,10 @@ export const metadata: Metadata = {
     title: 'ICONA | ERP + CRM for Construction Companies',
     description: company.subTagline,
   },
-  icons: { icon: '/favicon.svg' },
+  // type+sizes: some browsers only reliably swap a cached favicon when the
+  // link's attributes change, not just its content - a bare href isn't
+  // always enough to bust a stale tab-icon cache from before the rebrand.
+  icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml', sizes: 'any' }] },
 };
 
 const jsonLd = {

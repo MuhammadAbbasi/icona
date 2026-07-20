@@ -33,7 +33,17 @@ export function LoginForm() {
       setError('Invalid email or password. Please try again.');
       setIsLoading(false);
     } else {
-      router.push('/board');
+      try {
+        const res = await fetch('/api/auth/session');
+        const sessionData = await res.json();
+        if (sessionData?.user?.role === 'SUPER_ADMIN') {
+          router.push('/admin');
+        } else {
+          router.push('/board');
+        }
+      } catch {
+        router.push('/board');
+      }
       router.refresh();
     }
   }

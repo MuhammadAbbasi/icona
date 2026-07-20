@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { encryptSecret, maskSecret } from '@/lib/crypto';
 
 export async function GET() {
   try {
@@ -12,9 +13,8 @@ export async function GET() {
 
     const userId = session.user.id;
     const role = session.user.role;
-    const isStaff = ['ADMIN', 'MANAGER'].includes(role);
+    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role);
 
-    // Fetch personal user details & preferences
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -39,22 +39,30 @@ export async function GET() {
 
     let systemSettings: Record<string, string> = {};
 
-    // Keys that must never be returned to the client — they are internal secrets.
-    const SECRET_KEYS = new Set(['mobile_jwt_secret', 'nextauth_secret']);
+    const MASKED_SECRET_KEYS = new Set([
+      'whatsapp_access_token',
+      'telegram_bot_token',
+      'notion_integration_token',
+    ]);
 
-    // Only Admins/Managers can fetch global settings
+    const INTERNAL_SECRET_KEYS = new Set(['mobile_jwt_secret', 'nextauth_secret']);
+
     if (isStaff) {
       const dbSettings = await prisma.systemSetting.findMany({
-        where: { key: { notIn: Array.from(SECRET_KEYS) } },
+        where: { key: { notIn: Array.from(INTERNAL_SECRET_KEYS) } },
       });
+
       systemSettings = dbSettings.reduce((acc, setting) => {
-        acc[setting.key] = setting.value;
+        if (MASKED_SECRET_KEYS.has(setting.key)) {
+          acc[setting.key] = maskSecret(setting.value);
+        } else {
+          acc[setting.key] = setting.value;
+        }
         return acc;
       }, {} as Record<string, string>);
 
-      // Provide fallbacks if they don't exist yet
       if (!systemSettings.forgot_password_email) {
-        systemSettings.forgot_password_email = 'muhammadabbasi.llm@gmail.com';
+        systemSettings.forgot_password_email = 'support@icona.pk';
       }
       if (!systemSettings.global_weekly_client_updates) {
         systemSettings.global_weekly_client_updates = 'true';
@@ -86,12 +94,11 @@ export async function PATCH(req: Request) {
 
     const userId = session.user.id;
     const role = session.user.role;
-    const isStaff = ['ADMIN', 'MANAGER'].includes(role);
+    const isStaff = ['SUPER_ADMIN', 'ADMIN', 'MANAGER'].includes(role);
 
     const body = await req.json().catch(() => ({}));
     const { userPreferences, systemSettings } = body;
 
-    // 1. Update personal settings/preferences
     if (userPreferences) {
       const updateData: Record<string, any> = {};
 
@@ -118,26 +125,62 @@ export async function PATCH(req: Request) {
       });
     }
 
-    // 2. Update global system settings (Admins/Managers only)
     if (systemSettings && isStaff) {
-      // Explicit allowlist — prevents overwriting secrets or injecting arbitrary keys.
       const ALLOWED_SYSTEM_KEYS = new Set([
         'forgot_password_email',
         'global_weekly_client_updates',
         'global_budget_alert_threshold',
         'global_min_txn_alert_amount',
+        'use_custom_whatsapp',
+        'whatsapp_phone_number_id',
+        'whatsapp_waba_id',
+        'whatsapp_sender_phone',
+        'whatsapp_access_token',
+        'use_custom_telegram_bot',
+        'telegram_bot_username',
+        'telegram_bot_token',
+        'slack_webhook_url',
+        'odoo_sync_endpoint',
+        'notion_integration_token',
+        'trusted_telegram_users',
+        'test_tg_target_user',
+        'test_wa_recipient',
+        'org_flag_ai_copilot',
+        'org_flag_roman_urdu',
+        'org_flag_whatsapp',
+        'org_flag_telegram',
+        'org_flag_odoo',
+        'org_flag_slack',
+        'org_flag_notion',
+        'org_flag_prefilled_modals',
+        'org_flag_deadline_emails',
+      ]);
+
+      const SECRET_KEYS = new Set([
+        'whatsapp_access_token',
+        'telegram_bot_token',
+        'notion_integration_token',
       ]);
 
       const updates = [];
 
       for (const [key, value] of Object.entries(systemSettings)) {
-        if (!ALLOWED_SYSTEM_KEYS.has(key)) continue; // reject unknown / secret keys
+        if (!ALLOWED_SYSTEM_KEYS.has(key)) continue;
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          let strVal = String(value).trim();
+
+          if (SECRET_KEYS.has(key)) {
+            if (strVal.startsWith('••••••••') || strVal === '') {
+              continue;
+            }
+            strVal = encryptSecret(strVal);
+          }
+
           updates.push(
             prisma.systemSetting.upsert({
               where: { key },
-              update: { value: String(value) },
-              create: { key, value: String(value) },
+              update: { value: strVal },
+              create: { key, value: strVal },
             })
           );
         }
