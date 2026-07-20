@@ -25,14 +25,17 @@ export async function DELETE(
   }
 
   try {
+    // TaskPhoto has no orgId column, so the tenant fence goes through the
+    // owning project — otherwise any staff user in any org could archive any
+    // other org's photos by id.
     const photo = await prisma.taskPhoto.findUnique({
       where: { id: params.photoId },
       include: {
-        project: { select: { name: true } },
+        project: { select: { name: true, orgId: true } },
       },
     });
 
-    if (!photo) {
+    if (!photo || photo.project.orgId !== (session.user as { orgId?: string }).orgId) {
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
 
@@ -135,11 +138,13 @@ export async function PATCH(
     const body = await req.json();
     const action = body.action; // 'restore' | 'delete_permanent' | 'retain'
 
+    // Same tenant fence as DELETE above — TaskPhoto has no orgId of its own.
     const photo = await prisma.taskPhoto.findUnique({
       where: { id: params.photoId },
+      include: { project: { select: { orgId: true } } },
     });
 
-    if (!photo) {
+    if (!photo || photo.project.orgId !== (session.user as { orgId?: string }).orgId) {
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
 

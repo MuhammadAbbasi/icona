@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { getTenantScopedClient } from './tenantPrisma';
+import './logger'; // side effect: persists console.* to ./logs (see logger.ts)
 
 const globalForPrisma = globalThis as unknown as {
   systemPrisma?: PrismaClient;

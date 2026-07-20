@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 
   const [project, transactions, loans, investments, investorPayouts, companyInvestments, companyPayouts] = await Promise.all([
-    prisma.project.findUnique({ where: { id: params.id }, select: { budget: true } }),
+    prisma.project.findUnique({ where: { id: params.id }, select: { budget: true, orgId: true } }),
     prisma.transaction.findMany({
       where: { projectId: params.id },
       orderBy: { date: 'desc' },
@@ -47,6 +47,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       select: { amount: true }
     })
   ]);
+
+  // Transaction/Loan/Investment/InvestorPayout have no orgId of their own, so this
+  // is the only fence protecting another org's full ledger — without it, any
+  // ADMIN/MANAGER could read any org's financials by guessing a project id.
+  if (!project || project.orgId !== user.orgId) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: CORS_HEADERS });
+  }
 
   const companyInvestmentsTotal = companyInvestments.reduce((sum, inv) => sum + inv.amount, 0);
   const companyPayoutsTotal = companyPayouts.reduce((sum, p) => sum + p.amount, 0);
