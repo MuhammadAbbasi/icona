@@ -3,33 +3,48 @@
 @tailwind utilities;
 
 @layer base {
+  /* Brand tokens below are derived exactly from the ICONA brand spec in
+     CLAUDE.md (hex -> HSL, no rounding drift). Do not hand-tune a value here
+     without updating CLAUDE.md's hex to match. */
   :root {
-    --background: 215 25% 97%;
-    --foreground: 222 47% 11%;
+    --background: 210 40% 98%;   /* #F8FAFC - App Background */
+    --foreground: 222 47% 11%;   /* #0F172A - Primary Text */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%;           /* #FFFFFF - Surface/Cards */
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%; /* Royal Blue */
+    --primary: 221 83% 53%;      /* #2563EB - Royal Blue (Primary Brand) */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 15% 92%;
+    --primary-dark: 215 56% 23%; /* #1A365D - Deep Navy (Primary Dark) */
+    --primary-dark-foreground: 0 0% 100%;
+
+    --highlight: 198 93% 60%;    /* #38BDF8 - Sky Cyan (Accent/Highlight) */
+    --highlight-foreground: 222 47% 11%;
+
+    --success: 160 84% 39%;      /* #10B981 - Emerald Green */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;       /* #F59E0B - Amber */
+    --warning-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 94%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 215 15% 92%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 47%; /* #64748B - Secondary Text */
 
-    --accent: 215 15% 90%;
+    --accent: 210 40% 92%;
     --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 60%;    /* #EF4444 - Danger (matches spec exactly) */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 15% 88%;
-    --input: 215 15% 86%;
+    --border: 214 32% 91%;       /* #E2E8F0 - Borders & Dividers */
+    --input: 214 32% 88%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
@@ -52,8 +67,20 @@
     --popover: 222 47% 9%;
     --popover-foreground: 215 20% 95%;
 
-    --primary: 217 91% 60%; /* Bright Blue */
+    --primary: 217 91% 60%; /* Bright Blue - lightened for dark-mode contrast */
     --primary-foreground: 0 0% 100%;
+
+    --primary-dark: 215 56% 23%; /* #1A365D - fixed brand color, both schemes */
+    --primary-dark-foreground: 0 0% 100%;
+
+    --highlight: 198 93% 60%; /* #38BDF8 - fixed brand color, both schemes */
+    --highlight-foreground: 222 47% 11%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --secondary: 222 47% 15%;
     --secondary-foreground: 215 20% 95%;
@@ -105,7 +132,7 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-sky-500 to-cyan-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary to-highlight bg-clip-text text-transparent;
   }
 
   /* Scroll-in reveal, driven by the <Reveal> IntersectionObserver wrapper.

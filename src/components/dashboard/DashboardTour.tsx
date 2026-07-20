@@ -139,7 +139,7 @@ export function DashboardTour({ isOpen, onClose }: { isOpen: boolean; onClose: (
         {/* Top Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0 bg-slate-50">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-orange-100 text-orange-700">
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
               {stepInfo.tag}
             </span>
           </div>
@@ -173,7 +173,7 @@ export function DashboardTour({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <div className="w-full max-w-md bg-slate-50 p-4 rounded-xl border border-slate-100/60 text-left space-y-2.5">
             {stepInfo.features.map((feat, idx) => (
               <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                <Check className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <span>{feat}</span>
               </div>
             ))}
@@ -187,7 +187,7 @@ export function DashboardTour({ isOpen, onClose }: { isOpen: boolean; onClose: (
             {steps.map((_, idx) => (
               <span 
                 key={idx} 
-                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentStep ? 'w-5 bg-orange-600' : 'w-1.5 bg-slate-300'}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentStep ? 'w-5 bg-primary' : 'w-1.5 bg-slate-300'}`}
               />
             ))}
           </div>
@@ -205,7 +205,7 @@ export function DashboardTour({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
             <Button 
               onClick={handleNext}
-              className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg h-9 px-4 text-xs font-semibold shadow-sm transition-all"
+              className="bg-primary hover:bg-primary/90 text-white rounded-lg h-9 px-4 text-xs font-semibold shadow-sm transition-all"
             >
               {currentStep === steps.length - 1 ? (
                 'Finish'

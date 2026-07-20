@@ -178,5 +178,6 @@ will cause random delivery failures at scale. Replace with Resend:
 - [ ] **Strict Tenant Isolation**: Copilot queries pass exclusively through `tenantPrisma` session context (`orgId`). The LLM never receives raw SQL access or cross-tenant data.
 - [ ] **Core Capability Scope**:
       - Query projects, BOQ, ledger, budget vs actual, site attendance, and CRM leads.
+      - Multilingual & Roman Urdu Understanding: Process Roman Urdu and Urdu script queries (e.g. *"Canal Plaza ka budget kitna bacha hai?"*), mapping Pakistani unit terms (*Lakh*, *Crore*) and construction vocabulary (*Mistry*, *Mazdoor*, *Thekedar*, *Kharcha*).
       - Intent detection & UI Modal Pre-filling: Detect actions like "Create project", "Record payout", or "Add subcontractor", return structured JSON payload, and automatically trigger creation modals with pre-filled form fields.
 

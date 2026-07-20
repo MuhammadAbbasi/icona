@@ -235,10 +235,10 @@ function OnboardingWizard() {
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
         {/* Header Progress Bar */}
         <div className="bg-slate-900 px-8 py-6 text-white relative">
-          <div className="absolute -top-10 -left-10 w-[200px] h-[200px] rounded-full bg-orange-500/10 blur-2xl" />
+          <div className="absolute -top-10 -left-10 w-[200px] h-[200px] rounded-full bg-primary/10 blur-2xl" />
           <div className="relative z-10 flex justify-between items-center">
             <div>
-              <span className="text-orange-500 font-bold text-xs uppercase tracking-wider">Setup Wizard</span>
+              <span className="text-primary font-bold text-xs uppercase tracking-wider">Setup Wizard</span>
               <h1 className="text-xl font-bold tracking-tight">Configure Your Construction Portal</h1>
             </div>
             <div className="text-sm font-semibold text-slate-400">
@@ -249,7 +249,7 @@ function OnboardingWizard() {
           {/* Progress Indicators */}
           <div className="mt-6 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-orange-500 transition-all duration-300 ease-out" 
+              className="h-full bg-primary transition-all duration-300 ease-out" 
               style={{ width: `${(step / 5) * 100}%` }}
             />
           </div>
@@ -267,7 +267,7 @@ function OnboardingWizard() {
           {step === 1 && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <Globe className="h-5 w-5 text-orange-500" />
+                <Globe className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-bold text-slate-900">Step 1: Regional & Profile Settings</h2>
               </div>
 
@@ -278,7 +278,7 @@ function OnboardingWizard() {
                     id="currency"
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   >
                     {CURRENCIES.map((c) => (
                       <option key={c.code} value={c.code}>{c.code} ({c.name})</option>
@@ -293,7 +293,7 @@ function OnboardingWizard() {
                     id="timezone"
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   >
                     <option value="Asia/Karachi">Asia/Karachi (GMT+5:00)</option>
                     <option value="Asia/Dubai">Asia/Dubai (GMT+4:00)</option>
@@ -305,7 +305,7 @@ function OnboardingWizard() {
               <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <div className="flex items-center justify-between">
                   <Label>Taxes</Label>
-                  <button type="button" onClick={addTaxRule} className="inline-flex items-center gap-1 text-xs font-semibold text-orange-600 hover:underline">
+                  <button type="button" onClick={addTaxRule} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                     <Plus className="h-3.5 w-3.5" /> Add tax
                   </button>
                 </div>
@@ -359,7 +359,7 @@ function OnboardingWizard() {
                   placeholder="e.g. 45-B, Sector Z, Phase 3, DHA, Lahore, Pakistan"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:border-orange-500 focus:ring-orange-500 outline-none"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:border-primary focus:ring-primary outline-none"
                 />
               </div>
 
@@ -375,7 +375,7 @@ function OnboardingWizard() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <LayoutGrid className="h-5 w-5 text-orange-500" />
+                <LayoutGrid className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-bold text-slate-900">Step 2: WBS Hierarchy & Team Invites</h2>
               </div>
               
@@ -417,7 +417,7 @@ function OnboardingWizard() {
                   <button
                     type="button"
                     onClick={addLevel}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
                   >
                     <Plus className="h-3.5 w-3.5" /> Add a level ({levels.length}/{MAX_LEVELS})
                   </button>
@@ -432,7 +432,7 @@ function OnboardingWizard() {
                   placeholder="name@buildcorp.pk, supervisor@buildcorp.pk"
                   value={inviteEmails}
                   onChange={(e) => setInviteEmails(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:border-orange-500 focus:ring-orange-500 outline-none"
+                  className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:border-primary focus:ring-primary outline-none"
                 />
                 <p className="text-[11px] text-slate-400">Separate email addresses with commas. We will send invitation links to join your firm.</p>
               </div>
@@ -452,7 +452,7 @@ function OnboardingWizard() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <CreditCard className="h-5 w-5 text-orange-500" />
+                <CreditCard className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-bold text-slate-900">Step 3: Choose Plan & Simulated Billing</h2>
               </div>
 
@@ -471,7 +471,7 @@ function OnboardingWizard() {
                     onClick={() => setBillingPeriod('annual')}
                     className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${billingPeriod === 'annual' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                   >
-                    Annual Billing <span className="bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">-16% (2 Months Free)</span>
+                    Annual Billing <span className="bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded">-16% (2 Months Free)</span>
                   </button>
                 </div>
               </div>
@@ -486,11 +486,11 @@ function OnboardingWizard() {
                       key={key}
                       type="button"
                       onClick={() => setSelectedPlan(key)}
-                      className={`text-left p-4 rounded-xl border transition-all flex flex-col justify-between ${isSelected ? 'border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/10' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}
+                      className={`text-left p-4 rounded-xl border transition-all flex flex-col justify-between ${isSelected ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'}`}
                     >
                       <div>
                         <div className="flex justify-between items-start">
-                          <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${key === 'growth' ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                          <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${key === 'growth' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'}`}>
                             {key === 'growth' ? 'Popular' : key}
                           </span>
                         </div>
@@ -502,11 +502,11 @@ function OnboardingWizard() {
                       
                       <ul className="text-xs text-slate-500 space-y-1.5 mt-4 w-full">
                         <li className="flex items-center gap-1.5">
-                          <Check className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
+                          <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                           <span>{plan.projects} Projects limit</span>
                         </li>
                         <li className="flex items-center gap-1.5">
-                          <Check className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" />
+                          <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                           <span>{plan.members} Team members</span>
                         </li>
                       </ul>
@@ -546,7 +546,7 @@ function OnboardingWizard() {
           {step === 4 && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <FileSpreadsheet className="h-5 w-5 text-orange-500" />
+                <FileSpreadsheet className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-bold text-slate-900">Step 4: Seed First Project & BOQ</h2>
               </div>
 
@@ -576,7 +576,7 @@ function OnboardingWizard() {
                 </Button>
 
                 {boqFile && (
-                  <div className="mt-3 text-xs text-orange-600 bg-orange-50 border border-orange-100 rounded-lg px-3 py-1.5 font-mono flex items-center gap-1.5">
+                  <div className="mt-3 text-xs text-primary bg-primary/10 border border-primary/20 rounded-lg px-3 py-1.5 font-mono flex items-center gap-1.5">
                     <FileSpreadsheet className="h-3.5 w-3.5" />
                     {boqFile.name} ({(boqFile.size / 1024).toFixed(1)} KB)
                   </div>
@@ -587,7 +587,7 @@ function OnboardingWizard() {
                 <a
                   href="/api/boq/template"
                   download
-                  className="text-xs text-orange-600 font-semibold hover:underline flex items-center gap-1.5"
+                  className="text-xs text-primary font-semibold hover:underline flex items-center gap-1.5"
                 >
                   Download Sample BOQ Template
                 </a>
@@ -608,7 +608,7 @@ function OnboardingWizard() {
           {step === 5 && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <CheckCircle2 className="h-5 w-5 text-orange-500" />
+                <CheckCircle2 className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-bold text-slate-900">Step 5: Confirm & Launch Portal</h2>
               </div>
 
@@ -626,7 +626,7 @@ function OnboardingWizard() {
                       <p className="mt-2 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{importNote}</p>
                     )}
                   </div>
-                  <Loader2 className="h-6 w-6 animate-spin text-orange-500 mx-auto mt-4" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mt-4" />
                 </div>
               ) : (
                 <form onSubmit={handleFinalSubmit} className="space-y-5">
@@ -666,10 +666,10 @@ function OnboardingWizard() {
                         onChange={(e) => setLoginPassword(e.target.value)}
                         disabled={isLoading}
                         required
-                        className="h-11 border-slate-200 focus:border-orange-500 focus:ring-orange-500"
+                        className="h-11 border-slate-200 focus:border-primary focus:ring-primary"
                       />
                       <p className="text-xs text-slate-400">
-                        Forgot it? <a href="/forgot-password" className="text-orange-600 hover:underline font-medium">Reset your password</a>, your setup progress is saved.
+                        Forgot it? <a href="/forgot-password" className="text-primary hover:underline font-medium">Reset your password</a>, your setup progress is saved.
                       </p>
                     </div>
                   )}
@@ -678,7 +678,7 @@ function OnboardingWizard() {
                     <Button type="button" onClick={handlePrevStep} variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl h-11 px-6" disabled={isLoading}>
                       <ArrowLeft className="h-4 w-4 mr-2" /> Back
                     </Button>
-                    <Button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl h-11 px-6 text-sm font-semibold transition-all" disabled={isLoading}>
+                    <Button type="submit" className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-6 text-sm font-semibold transition-all" disabled={isLoading}>
                       {isLoading ? (
                         <><Loader2 className="h-4 w-4 animate-spin mr-2" />Deploying ERP…</>
                       ) : (

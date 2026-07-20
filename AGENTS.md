@@ -10,9 +10,70 @@ investors, mobile app). This repo is the **website only**: a Next.js 14 App
 Router site, 100% presentational. **No backend, database, auth, API routes, env
 vars, or Docker.** Do not add any of these unless explicitly asked.
 
+## Brand & Design System (mandatory for ANY styling work)
+
+ICONA's brand represents stability, modern technology, and trust in the
+construction sector: a monochromatic scale of professional blues paired with
+clean neutrals. This applies to the website, the ERP/CRM portal, and the
+Android app - any agent touching CSS, Tailwind config, or component styling
+**must** follow it exactly, with no exceptions unless the user explicitly
+overrides it for a specific change.
+
+### Core brand colors (the blues)
+| Name | Hex | Role |
+|---|---|---|
+| Deep Navy (Primary Dark) | `#1A365D` | Brand typography (e.g. "ICONA" wordmark), heavy structural elements, app headers, primary active states. Authority and structure. |
+| Royal Blue (Primary Brand) | `#2563EB` | Core brand color: primary CTA buttons, active tab underlines, primary icons. Technology and action. |
+| Sky Cyan (Accent/Highlight) | `#38BDF8` | Used sparingly: hover states, progress bars, interactive toggles, success indicators, secondary logo shapes. Innovation and energy. |
+
+### Neutral palette (backgrounds & text)
+| Name | Hex | Role |
+|---|---|---|
+| App Background | `#F8FAFC` | Very light slate gray - never pure white for the main app background (it reduces eye strain). |
+| Surface/Cards | `#FFFFFF` | Pure white - Kanban cards, pricing tables, content containers pop off the background. |
+| Primary Text | `#0F172A` | Almost black - headings and primary body text. |
+| Secondary Text | `#64748B` | Muted gray - subtitles, placeholders, metadata. |
+| Borders & Dividers | `#E2E8F0` | Light gray - subtle separation of Kanban columns or list items. |
+
+### Functional colors (feedback)
+| Name | Hex |
+|---|---|
+| Success (completed tasks) | `#10B981` (Emerald Green) |
+| Warning (overdue/pending) | `#F59E0B` (Amber) |
+| Danger (delete/errors) | `#EF4444` (Red) |
+
+### Implementation rules
+- All of the above are already wired as CSS variable tokens in
+  `src/app/globals.css` + `tailwind.config.ts`: `primary` (Royal Blue),
+  `primary-dark` (Deep Navy), `highlight` (Sky Cyan), `success`, `warning`,
+  `destructive` (= Danger, exact match), `background`, `card`, `foreground`,
+  `muted-foreground`, `border`. **Use these semantic classes
+  (`bg-primary`, `text-primary-dark`, `bg-highlight`, `border-border`, ...) -
+  never hardcode a literal Tailwind color (`orange-500`, `indigo-600`,
+  `rose-400`, etc.) for anything that represents brand identity**: buttons,
+  links, active states, focus rings, headline highlights, logo marks. This
+  repo's real color bugs (orange in the onboarding wizard and dashboard tour,
+  indigo/violet in the login/forgot-password/reset-password pages) all came
+  from a component hardcoding a literal color instead of the token - do not
+  reintroduce that pattern.
+- **Contrast:** white text (`#FFFFFF`) inside `primary-dark` and `primary`
+  buttons, for WCAG compliance.
+- **Gradients:** hero sections / landing-page backgrounds blend Deep Navy
+  (`#1A365D`) -> Royal Blue (`#2563EB`).
+- **Shadows:** soft, cool-toned, a slight blue tint (e.g.
+  `rgba(37, 99, 235, 0.1)`) instead of harsh black drop shadows.
+- **Decorative exception:** color used to distinguish *categories of data*
+  (e.g. a multi-step tour's per-topic icon colors, a chart's series colors)
+  is not a brand-identity use and is not covered by this rule. Ask: "does
+  this represent ICONA, or does it just tell two data rows apart?" Only the
+  former must be on-brand.
+
+(`CLAUDE.md` in this repo points here for Claude Code specifically; this
+section is the canonical source any agent should follow.)
+
 ## Stack
 - Next.js 14.2.35 (App Router) + React 18 (stay on 14.2.x; a 15/16 jump is breaking)
-- Tailwind CSS 3.4 using the semantic tokens in `globals.css` (orange `primary`, light/dark)
+- Tailwind CSS 3.4 using the semantic tokens in `globals.css` (Royal Blue `primary`, light/dark)
 - `lucide-react` icons, `next/font` (Inter)
 - Contact form posts client-side to Formspree (no server)
 

@@ -10,9 +10,9 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-[52%] relative bg-slate-900 overflow-hidden flex-col justify-between p-12">
         {/* Decorative background */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-600/20 blur-3xl" />
-          <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] rounded-full bg-violet-600/15 blur-3xl" />
-          <div className="absolute top-1/2 left-1/4 w-[300px] h-[300px] rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary-dark/30 blur-3xl" />
+          <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] rounded-full bg-primary/15 blur-3xl" />
+          <div className="absolute top-1/2 left-1/4 w-[300px] h-[300px] rounded-full bg-highlight/10 blur-3xl" />
           {/* Grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.04]"
@@ -41,7 +41,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <h1 className="text-4xl font-bold text-white leading-[1.15]">
               Managing projects<br />
-              <span className="text-indigo-400">at scale</span>, simplified.
+              <span className="text-highlight">at scale</span>, simplified.
             </h1>
             <p className="text-slate-400 text-base leading-relaxed max-w-sm">
               Track every domain, task, and subtask across your entire project portfolio (from civil works to electrical installations) in one unified platform.

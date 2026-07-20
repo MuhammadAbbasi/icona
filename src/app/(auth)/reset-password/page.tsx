@@ -81,13 +81,13 @@ function ResetPasswordFormContent() {
   return (
     <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 relative z-10 shadow-2xl">
       <div className="mb-6">
-        <Link href="/forgot-password" className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+        <Link href="/forgot-password" className="inline-flex items-center gap-1 text-xs font-semibold text-highlight hover:text-highlight/80 transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Verification Email
         </Link>
       </div>
 
       <div className="mb-6">
-        <div className="h-10 w-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4">
+        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 mb-4">
           <KeyRound className="text-white h-5 w-5" />
         </div>
         <h2 className="text-2xl font-bold text-white tracking-tight">Reset Password</h2>
@@ -97,7 +97,7 @@ function ResetPasswordFormContent() {
       </div>
 
       {error && (
-        <div className="mb-5 text-xs text-rose-400 bg-rose-950/20 border border-rose-900/30 rounded-lg px-3 py-2.5">
+        <div className="mb-5 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2.5">
           {error}
         </div>
       )}
@@ -120,7 +120,7 @@ function ResetPasswordFormContent() {
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading || !!success}
             required
-            className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+            className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
 
@@ -135,7 +135,7 @@ function ResetPasswordFormContent() {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
             disabled={isLoading || !!success}
             required
-            className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 text-center tracking-[10px] font-bold focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+            className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 text-center tracking-[10px] font-bold focus-visible:ring-primary focus-visible:border-primary"
           />
         </div>
 
@@ -150,7 +150,7 @@ function ResetPasswordFormContent() {
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isLoading || !!success}
               required
-              className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 pr-10"
+              className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-primary focus-visible:border-primary pr-10"
             />
             <button
               type="button"
@@ -173,7 +173,7 @@ function ResetPasswordFormContent() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading || !!success}
               required
-              className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 pr-10"
+              className="h-10 bg-slate-900 border-slate-800 text-slate-100 placeholder-slate-500 focus-visible:ring-primary focus-visible:border-primary pr-10"
             />
             <button
               type="button"
@@ -185,7 +185,7 @@ function ResetPasswordFormContent() {
           </div>
         </div>
 
-        <Button type="submit" disabled={isLoading || !!success} className="w-full h-10 mt-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all shadow-md shadow-indigo-600/10">
+        <Button type="submit" disabled={isLoading || !!success} className="w-full h-10 mt-2 bg-primary hover:bg-primary/90 text-white font-medium text-sm transition-all shadow-md shadow-primary/10">
           {isLoading ? (
             <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />Resetting Password…</>
           ) : (
@@ -202,13 +202,13 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-violet-600/10 blur-[100px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary-dark/20 blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[100px]" />
       </div>
 
       <Suspense fallback={
         <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 relative z-10 flex flex-col items-center justify-center min-h-[300px]">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-3" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
           <span className="text-sm text-slate-400">Loading form parameters…</span>
         </div>
       }>
