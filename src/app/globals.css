@@ -180,3 +180,58 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* FullCalendar Custom Theme - Brand Token Alignment */
+.fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--muted) / 0.3);
+  --fc-list-event-hover-bg-color: hsl(var(--muted) / 0.5);
+  --fc-today-bg-color: hsl(var(--primary) / 0.08);
+  font-family: inherit;
+}
+.fc .fc-toolbar-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+.fc .fc-button-primary {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  text-transform: capitalize;
+  box-shadow: none;
+}
+.fc .fc-button-primary:hover:not(:disabled) {
+  background-color: hsl(var(--primary-dark));
+  border-color: hsl(var(--primary-dark));
+}
+.fc .fc-button-primary:focus {
+  box-shadow: none;
+}
+.fc .fc-button-active {
+  background-color: hsl(var(--primary-dark)) !important;
+  border-color: hsl(var(--primary-dark)) !important;
+}
+.fc-theme-standard td, .fc-theme-standard th {
+  border-color: hsl(var(--border));
+}
+.fc-theme-standard .fc-scrollgrid {
+  border-color: hsl(var(--border));
+  border-radius: 0.5rem;
+}
+.fc-event {
+  border-radius: 0.25rem;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}

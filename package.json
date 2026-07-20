@@ -13,10 +13,14 @@
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "test": "node --import tsx --test src/lib/utils.test.ts src/lib/entitlements.test.ts src/lib/finance.test.ts",
+    "test": "node --import tsx --test src/lib/utils.test.ts src/lib/entitlements.test.ts src/lib/finance.test.ts src/lib/projectAccess.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/react": "^7.0.1",
+    "@fullcalendar/timegrid": "^6.1.21",
     "@prisma/client": "^5.16.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",

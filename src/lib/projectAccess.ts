@@ -25,7 +25,15 @@ export function getProjectScope(user: ApiUser): Record<string, any> {
       ],
     };
   }
-  // ADMIN, MANAGER — unrestricted
+  if (user.role === 'SUBCONTRACTOR') {
+    return {
+      ...base,
+      subcontractorEngagements: {
+        some: { subcontractor: { userId: user.id } },
+      },
+    };
+  }
+  // ADMIN, MANAGER, SUPER_ADMIN - unrestricted
   return base;
 }
 

@@ -17,7 +17,7 @@ model User {
   name            String
   email           String       @unique
   password        String
-  role            String       @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE | CLIENT
+  role            String       @default("EMPLOYEE") // ADMIN | MANAGER | EMPLOYEE | CLIENT | FREELANCER | SUBCONTRACTOR
   status          String       @default("ACTIVE")   // ACTIVE | INACTIVE
   emailVerified   DateTime?    // set when the signup verification link is clicked; null = login blocked
   salary          Float?       // monthly salary (employees) OR agreed amount (freelancers)
@@ -44,12 +44,16 @@ model User {
   uploadedPhotos  TaskPhoto[]
   projectDocuments ProjectDocument[] @relation("ProjectDocumentCreator")
   siteVisits       SiteVisit[]       @relation("SiteVisitor")
+  calendarEventsCreated CalendarEvent[]         @relation("CalendarEventCreator")
+  calendarAttendances   CalendarEventAttendee[]
+  subcontractorAccount  Subcontractor?          @relation("SubcontractorAccount")
 
   // Notification preference fields
   taskAssignNotifications Boolean  @default(true)
   dailyTaskDigest        Boolean  @default(true)
   weeklyClientUpdates    Boolean  @default(true)
   projectCompletionAlert Boolean  @default(true)
+  deadlineReminderDays   Int      @default(3)    // how many days before a deadline to receive a reminder
   worker                 Worker?
   memberships            Membership[]
   orgId                  String?
@@ -108,6 +112,8 @@ model Organization {
   overheadExpenses OverheadExpense[]
   salaryRuns    SalaryRun[]
   users         User[]
+  calendarEvents CalendarEvent[]
+  calendarSyncedAt DateTime?   // last successful calendar sync
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -302,6 +308,8 @@ model Project {
   subcontractorEngagements SubcontractorEngagement[]
   subcontractorLogs        SubcontractorLog[]
   siteVisits               SiteVisit[]
+  calendarEvents           CalendarEvent[]
+  calendarVisibility       ProjectCalendarVisibility[]
   orgId         String?
   org           Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
@@ -1000,6 +1008,8 @@ model Subcontractor {
   notes       String?  @db.Text
   maxMembers  Int?     // editable crew cap
   status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  userId      String?  @unique   // set when this subcontractor is given portal credentials
+  user        User?    @relation("SubcontractorAccount", fields: [userId], references: [id])
   members     SubcontractorMember[]
   engagements SubcontractorEngagement[]
   logs        SubcontractorLog[]
@@ -1072,3 +1082,70 @@ model SiteVisit {
   @@index([userId])
 }
 
+// ── Calendar ─────────────────────────────────────────────────────────────────
+// A calendar entry. Auto-derived rows (from Task.dueDate, Project.endDate,
+// SiteVisit.date) are represented as CalendarEvent rows too, rebuilt by
+// syncCalendar(), so there is one query to render a calendar, not four merged
+// in application code.
+model CalendarEvent {
+  id           String   @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projectId    String?  // null = a personal/company event not tied to a project
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?  @db.Text
+  startAt      DateTime
+  endAt        DateTime?          // null = a point-in-time deadline marker, not a range
+  allDay       Boolean  @default(false)
+
+  // Derived types are rebuilt by sync; authored types are never touched by it.
+  //   derived:  TASK_DEADLINE | PROJECT_DEADLINE | SITE_VISIT
+  //   authored: MEETING | TRAVEL | SITE_VISIT_PLANNED | LEAVE | OTHER
+  type         String
+  sourceTaskId String?            // set when type = TASK_DEADLINE, for click-through
+  sourceSiteVisitId String?       // set when type = SITE_VISIT
+
+  // Set on derived rows only. Lets sync find and replace exactly what it owns
+  // without ever touching a row a human typed. Null = authored by a person.
+  sourceKey    String?            // e.g. "TASK_DEADLINE:clx123"
+
+  // Nullable: derived rows have no human author.
+  createdById  String?
+  createdBy    User?    @relation("CalendarEventCreator", fields: [createdById], references: [id])
+  attendees    CalendarEventAttendee[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([sourceKey])
+  @@index([orgId])
+  @@index([projectId])
+  @@index([startAt])
+  @@index([orgId, startAt])   // the query the calendar page actually runs
+}
+
+model CalendarEventAttendee {
+  id      String        @id @default(cuid())
+  eventId String
+  event   CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+}
+
+// Per-project, per-role visibility toggle. One row per (project, role) that's
+// been explicitly turned on; absence = not visible (safe default).
+model ProjectCalendarVisibility {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  viewerRole String  // "CLIENT" | "FREELANCER" | "SUBCONTRACTOR"
+  visible   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, viewerRole])
+}

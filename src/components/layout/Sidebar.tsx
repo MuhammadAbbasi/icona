@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import {
   LayoutDashboard, FolderKanban, Building2, Users, Settings,
-  ChevronRight, LogOut, Moon, Sun, Zap, UserCircle, UsersRound, Wallet, ReceiptText, Scale,
+  ChevronRight, LogOut, Moon, Sun, Zap, UserCircle, UsersRound, Wallet, ReceiptText, Scale, CalendarDays,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn, getInitials, ROLE_CONFIG } from '@/lib/utils';
@@ -16,7 +16,8 @@ import type { Role } from '@/types';
 
 const navItems = [
   { href: '/admin',     label: 'Client Admin Portal', icon: Building2, roles: ['SUPER_ADMIN'] },
-  { href: '/board',     label: 'Project Board', icon: LayoutDashboard, roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
+  { href: '/board',     label: 'Project Board', icon: LayoutDashboard, roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT','FREELANCER','SUBCONTRACTOR'] },
+  { href: '/calendar',  label: 'Calendar',      icon: CalendarDays,   roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT','FREELANCER','SUBCONTRACTOR'] },
   { href: '/projects',  label: 'Projects',      icon: FolderKanban,   roles: ['SUPER_ADMIN','ADMIN','MANAGER','EMPLOYEE','CLIENT'] },
   { href: '/companies', label: 'Companies',     icon: Building2,      roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
   { href: '/ledger',    label: 'Finances',      icon: Wallet,        roles: ['SUPER_ADMIN','ADMIN','MANAGER'] },
