@@ -78,6 +78,16 @@ embedded payments (invoicing + local rails) and, using the firm's own ledger
 data, working-capital financing - turning a $50/mo SaaS into a fintech with a
 proprietary data moat.
 
+FOUNDER, STAGE & ASK:
+Solo technical founder with construction-industry roots who previously built a
+construction ERP/CRM (ICON CRM) and single-handedly built ICONA's multi-tenant
+web ERP and Android app - now actively recruiting a business/sales cofounder.
+Stage: pre-launch (full product built, no paying users yet; forming a
+design-partner pipeline). Go-to-market: founder-led direct sales in Lahore,
+Karachi, and Islamabad. Ask: raising ~$250K pre-seed for ~18 months to reach
+the first 150-300 paying SMEs and de-risk a seed round. Keep the team/traction
+slide 100% honest - never invent users or revenue.
+
 TONE: Confident, concrete, numbers-first, no fluff. Every slide makes ONE
 point. Short sentences. Founder-market-fit and momentum over hype.
 
@@ -224,8 +234,13 @@ SLIDES:
     - 50,000 firms = **$30M ARR**
     - Context: Pakistan has **5M+ SMEs**; construction is the **#2 employer**
 - **Notes:** Show the funnel. Keep SOM conservative and arithmetic - a number
-  you can defend beats a huge number you can't. `[[FILL: your best estimate of
-  reachable construction-SME count in Pakistan, and how you derived it]]`.
+  you can defend beats a huge number you can't. **Beachhead:** the formal/
+  semi-formal contracting firms in Pakistan's three metros (Lahore, Karachi,
+  Islamabad-Rawalpindi) first. Conservative reachable universe **~150,000
+  firms** nationally (construction is the #2 employer among 5M+ SMEs; validate
+  against Pakistan Engineering Council registrations and contractor-association
+  rolls). Capturing **2% = ~3,000 firms = ~$1.8M ARR**; **10% in-country =
+  ~$9M+ ARR** - before any regional expansion or fintech revenue.
 
 ### Slide 8 - Business model
 - **One point:** Tiered SaaS today; a fintech platform tomorrow.
@@ -238,7 +253,10 @@ SLIDES:
   - **Expansion revenue (next):** embedded invoicing + local payment rails
     (transaction take-rate), then working-capital financing on ledger data
 - **Notes:** Show the LTV logic: sticky system-of-record -> low churn ->
-  expansion. `[[FILL: target CAC, gross margin, any early retention signal]]`.
+  expansion. **Targets (pre-launch, to validate with the first cohort):** gross
+  margin **~80%+** (lean cloud stack), CAC **~$100/firm** via founder-led sales,
+  **~2-3 month payback**, **LTV/CAC ~10x** on a 24-36 month lifetime. No live
+  retention data yet - the raise exists to prove these numbers.
 
 ### Slide 9 - Competition & moat
 - **One point:** Incumbents can't reach this customer; we're built for them.
@@ -267,8 +285,13 @@ SLIDES:
     seats and projects
   - Referral loop: subcontractors and clients invited into the portal become
     aware of ICONA
-- **Notes:** `[[FILL: your actual early channel and any CAC/pipeline data]]`.
-  Accelerators want a repeatable acquisition motion, not "we'll do marketing."
+- **Notes:** **Primary motion: founder-led direct sales** in Lahore, Karachi,
+  and Islamabad - the founder sells to contractors face-to-face, lands them
+  with a single BOQ import (value inside a week), then expands by seats and
+  projects. Pre-launch, so no CAC data yet; the near-term goal is a first
+  design-partner cohort that proves the motion is repeatable and cheap.
+  Accelerators want exactly this: a concrete, low-cost, founder-run channel -
+  not "we'll do marketing."
 
 ### Slide 11 - Vision / roadmap (the venture-scale slide)
 - **One point:** Own the system of record, then own the money that flows
@@ -288,22 +311,38 @@ SLIDES:
 ### Slide 12 - Team + traction
 - **One point:** The right team, already moving.
 - **Content:**
-  - `[[FILL: founders, roles, and the founder-market-fit reason you'll win]]`
-  - Product status: working web ERP + Android app, multi-tenant SaaS
-    architecture (subdomain per client), tiered billing
-  - Traction: `[[FILL: pilots, design partners, LOIs, waitlist, revenue,
-    usage - whatever is TRUE. If pre-launch, say "design-partner pipeline of
-    N firms" and show the product is built.]]`
-- **Notes:** Never fabricate traction. "Product built + N design partners" is a
-  strong pre-seed story on its own.
+  - **Founder:** [[YOUR NAME]] - solo technical founder. **Founder-market-fit:**
+    construction-industry roots (lived the Excel/WhatsApp chaos firsthand),
+    already built a construction ERP/CRM before (the earlier ICON CRM), and
+    deep local-market insight (PKR billing, Urdu, on-the-ground SME reality
+    global players can't reach). Single-handedly built ICONA's multi-tenant web
+    ERP **and** Android field app - proof of execution velocity at low burn.
+  - **Actively recruiting a business/sales cofounder** to own GTM and
+    commercial clarity - a primary reason for seeking an accelerator (cofounder
+    network + sales muscle).
+  - **Product status:** built and running - multi-tenant SaaS (subdomain per
+    client), tiered billing, web ERP + Android app, AI Copilot, workspace
+    calendar.
+  - **Traction (honest, pre-launch):** product is built; **no paying users
+    yet**. Now forming a design-partner pipeline for first pilots. The raise
+    converts a finished product into the first paying cohort - the open risk is
+    go-to-market, not "can it be built."
+- **Notes:** Never fabricate traction. "Full product built solo + clear GTM
+  plan + design-partner pipeline" is a strong pre-seed story on its own. A solo
+  technical founder who already shipped the whole product is credible; pair it
+  with the stated intent to add a business cofounder.
 
 ### Slide 13 - The ask
 - **One point:** What you're raising and what it buys.
 - **Content:**
-  - Raising `[[FILL: $amount]]` `[[FILL: pre-seed/seed]]`
-  - Use of funds: `[[FILL: e.g., 50% eng, 30% GTM, 20% ops]]`
-  - Milestones this buys: `[[FILL: e.g., N paying SMEs, $X ARR, launch
-    payments beta in M months]]`
+  - Raising **~$250K pre-seed** (SAFE) for ~18 months of runway
+  - **Use of funds:** ~40% product & engineering (finish payments groundwork,
+    1-2 hires), ~30% go-to-market (business cofounder / first sales hire +
+    pilot acquisition), ~20% team & operations (onboarding + support), ~10%
+    infra, legal & buffer
+  - **Milestones this buys:** commercial launch; **first 150-300 paying SMEs
+    (~$75K-150K ARR)**; a signed **business cofounder**; and an **embedded-
+    invoicing beta** live - the traction that de-risks a priced seed round
   - Close on the vision line: *"Become the operating system - and the
     financial rails - for construction in the emerging world."*
 - **Notes:** Tie the ask to specific, dated milestones. Contact + link.
@@ -374,8 +413,11 @@ SLIDES:
 - **Stickiness:** once the BOQ, ledger, and labour history live in ICONA, the
   switching cost is the whole business memory -> low churn, high LTV.
 - **The expansion thesis:** every firm on ICONA is a future payments and
-  lending customer. `[[FILL: model your CAC, gross margin %, payback months,
-  and net revenue retention target here.]]`
+  lending customer. **Target unit economics (pre-launch, to validate):** ARPU
+  ~$50/mo ($600/yr); gross margin **~80%+** on a lean cloud stack; CAC
+  **~$100/firm** through founder-led direct sales; **payback ~2-3 months**;
+  **LTV/CAC ~10x** at a 24-36 month lifetime; **net revenue retention >100%** as
+  firms add seats/projects, upgrade tiers, and later adopt payments.
 
 ---
 
@@ -485,7 +527,9 @@ Tailor emphasis by audience; same deck, different spotlight:
   markets thesis** (huge underserved TAM, mobile-first leapfrog), the
   **replicable playbook** across South Asia/MENA/Africa, and a **credible path
   to defensibility** (data moat -> embedded finance). European investors like
-  a clear, large, and *global-South-scalable* story.
+  a clear, large, and *global-South-scalable* story. **EF and Antler in
+  particular back strong solo founders and actively help match cofounders** -
+  lean into that as a solo technical founder seeking a business partner.
 - **Universal application answers to pre-write:**
   - *What do you do?* (the 30-second thesis, memorized)
   - *Why now?* (Slide 6 timing argument)
