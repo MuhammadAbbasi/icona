@@ -311,7 +311,7 @@ SLIDES:
 ### Slide 12 - Team + traction
 - **One point:** The right team, already moving.
 - **Content:**
-  - **Founder:** [[YOUR NAME]] - solo technical founder. **Founder-market-fit:**
+  - **Founder:** Muhammad Abbasi - solo technical founder. **Founder-market-fit:**
     construction-industry roots (lived the Excel/WhatsApp chaos firsthand),
     already built a construction ERP/CRM before (the earlier ICON CRM), and
     deep local-market insight (PKR billing, Urdu, on-the-ground SME reality
