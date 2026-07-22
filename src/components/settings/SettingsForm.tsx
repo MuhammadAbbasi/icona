@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm';
+import { EmailDeliveryCard } from '@/components/settings/EmailDeliveryCard';
 
 interface SettingsData {
   user: {
@@ -1139,19 +1140,14 @@ export function SettingsForm() {
               </CardContent>
             </Card>
 
+            <EmailDeliveryCard />
+
             <Card>
               <CardHeader>
-                <CardTitle>SMTP & Report Operations</CardTitle>
-                <CardDescription>Monitor mail servers, test integrations, and trigger manual reports.</CardDescription>
+                <CardTitle>Report Operations</CardTitle>
+                <CardDescription>Trigger manual reports and background checks.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-lg border bg-muted/40 p-4 space-y-2 text-xs">
-                  <div className="flex justify-between border-b pb-1 border-border/50">
-                    <span className="text-muted-foreground">Sending Email:</span>
-                    <span className="font-semibold text-foreground">admin@icona.pk</span>
-                  </div>
-                </div>
-
                 <Button
                   variant="outline"
                   onClick={triggerDeadlineCron}

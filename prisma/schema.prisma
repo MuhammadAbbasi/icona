@@ -93,6 +93,10 @@ model Organization {
   primaryColor  String?
   terminology   Json?    // {"levels":["Domain","Task","Subtask"]} — ordered, length == hierarchyDepth
   modules       Json?    // {"ledger":true,"inventory":false,"timesheets":true}
+  // Per-tenant outbound email. null = use the platform's global Resend sender.
+  // Shape: OrgEmailConfig in src/lib/email-config.ts (SMTP password stored
+  // AES-256-GCM encrypted in passEnc, never plaintext).
+  emailConfig   Json?
   taxRules      TaxRule[]
 
   planId        String?
