@@ -45,6 +45,20 @@ export async function POST(req: Request) {
         const tgData = await tgRes.json();
 
         if (tgData.ok && tgData.result?.username) {
+          // Register shortcut commands menu with Telegram API automatically
+          const { registerTelegramCommands, getTelegramWebhookInfo, registerTelegramWebhook } = await import('@/lib/telegram');
+          await registerTelegramCommands();
+
+          // Sync webhook if custom webhookUrl provided in payload
+          if (webhookUrl && webhookUrl.startsWith('https://')) {
+            await registerTelegramWebhook(webhookUrl);
+          }
+
+          const webhookInfo = await getTelegramWebhookInfo();
+          let webhookNote = webhookInfo.url
+            ? ` (Webhook Active: ${webhookInfo.url})`
+            : ` (Webhook Pending: Set public HTTPS domain to receive live updates)`;
+
           let extraMsg = '';
           let resolvedChatId: string | number | null = null;
 
@@ -119,8 +133,9 @@ export async function POST(req: Request) {
 
           return NextResponse.json({
             success: true,
-            message: `Telegram Bot connection verified! Bot @${tgData.result.username} (ID: ${tgData.result.id}) is active.${extraMsg}`,
+            message: `Telegram Bot connection verified & shortcut commands synced! Bot @${tgData.result.username} (ID: ${tgData.result.id}) is active.${webhookNote}${extraMsg}`,
             botDetails: tgData.result,
+            webhookInfo,
             resolvedChatId,
           });
         } else {
