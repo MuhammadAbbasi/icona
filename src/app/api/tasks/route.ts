@@ -13,6 +13,10 @@ const schema = z.object({
   priority:    z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
   dueDate:     z.string().optional().nullable(),
   assigneeId:  z.string().optional().nullable(),
+  unit:        z.string().optional().nullable(),
+  quantity:    z.number().optional().nullable(),
+  rate:        z.number().optional().nullable(),
+  unitRate:    z.number().optional().nullable(),
 });
 
 export async function POST(req: Request) {
@@ -26,7 +30,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
   }
 
-  const { domainId, title, description, status, priority, dueDate, assigneeId } = parsed.data;
+  const { domainId, title, description, status, priority, dueDate, assigneeId, unit, quantity, rate, unitRate } = parsed.data;
 
   // Guard against stale session IDs (e.g. after a DB reset during dev)
   const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
@@ -44,6 +48,9 @@ export async function POST(req: Request) {
       dueDate:     dueDate ? new Date(dueDate) : null,
       assigneeId:  assigneeId || null,
       creatorId:   dbUser.id,
+      unit:        unit?.trim() || null,
+      quantity:    quantity ?? null,
+      rate:        rate ?? unitRate ?? null,
     },
     include: {
       assignee: { select: { id: true, name: true, email: true } },
