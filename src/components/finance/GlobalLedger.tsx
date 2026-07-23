@@ -502,18 +502,18 @@ export function GlobalLedger({
           </div>
 
           {/* Summary cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-8 gap-3">
             {cards.map((c) => (
-              <Card key={c.label}>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-medium text-muted-foreground leading-tight line-clamp-1">{c.label}</span>
-                    <div className={cn('h-6 w-6 rounded-lg flex items-center justify-center flex-shrink-0', c.bg)}>
-                      <c.icon className={cn('h-3.5 w-3.5', c.tone)} />
+              <Card key={c.label} className="min-w-0">
+                <CardContent className="p-3 sm:p-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[11px] font-semibold text-muted-foreground truncate min-w-0">{c.label}</span>
+                    <div className={cn('h-5 w-5 sm:h-6 sm:w-6 rounded-md flex items-center justify-center flex-shrink-0', c.bg)}>
+                      <c.icon className={cn('h-3 w-3 sm:h-3.5 sm:w-3.5', c.tone)} />
                     </div>
                   </div>
-                  <p className={cn('text-sm font-bold tabular-nums truncate', c.tone)}>{pkr(c.value)}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{c.sub}</p>
+                  <p className={cn('text-xs sm:text-sm font-bold tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis', c.tone)} title={pkr(c.value)}>{pkr(c.value)}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight truncate">{c.sub}</p>
                 </CardContent>
               </Card>
             ))}
