@@ -5,7 +5,7 @@ import { SITE_CONFIG, resolveCta } from '@/config';
 
 const Logo = ({ light }) => (
   <a href="#top" className={`flex items-center gap-2 font-display text-lg font-bold tracking-tight ${light ? 'text-white' : ''}`}>
-    <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-lg border border-border/40 bg-white p-0.5 shadow-sm">
+    <div className="grid h-8 w-8 place-items-center">
       <img src="/logo-icon.png" alt="ICONA Logo" className="h-full w-full object-contain" />
     </div>
     <span>ICONA</span>
