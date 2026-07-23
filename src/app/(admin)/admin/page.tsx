@@ -39,6 +39,7 @@ interface AdminStats {
     monthlyQueries: number;
     totalInputTokens: number;
     totalOutputTokens: number;
+    totalTokensMonth: number;
     estCostUsd: number;
     estCostPkr: number;
     avgLatencyMs: number;
@@ -290,9 +291,11 @@ export default function AdminOverviewPage() {
             <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
               <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Cumulative Tokens</span>
               <span className="text-xl font-bold text-white mt-1 block">
-                {loading ? '...' : '6.2M'}
+                {loading ? '...' : (stats?.llmStats.totalTokensMonth ? (stats.llmStats.totalTokensMonth >= 1000000 ? (stats.llmStats.totalTokensMonth / 1000000).toFixed(2) + 'M' : stats.llmStats.totalTokensMonth.toLocaleString()) : '0')}
               </span>
-              <span className="text-[10px] text-slate-400">4.9M Input • 1.2M Output</span>
+              <span className="text-[10px] text-slate-400">
+                {stats?.llmStats.totalInputTokens ? (stats.llmStats.totalInputTokens >= 1000000 ? (stats.llmStats.totalInputTokens / 1000000).toFixed(2) + 'M' : stats.llmStats.totalInputTokens.toLocaleString()) : '0'} In • {stats?.llmStats.totalOutputTokens ? (stats.llmStats.totalOutputTokens >= 1000000 ? (stats.llmStats.totalOutputTokens / 1000000).toFixed(2) + 'M' : stats.llmStats.totalOutputTokens.toLocaleString()) : '0'} Out
+              </span>
             </div>
 
             <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
