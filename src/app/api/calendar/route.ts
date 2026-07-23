@@ -44,7 +44,7 @@ export async function GET(req: Request) {
       });
     });
 
-    let allowedProjectIds = allowedProjects.map((p) => p.id);
+    let allowedProjectIds: string[] = (allowedProjects as Array<{ id: string }>).map((p) => p.id);
 
     // 2. For external roles (CLIENT, FREELANCER, SUBCONTRACTOR), enforce ProjectCalendarVisibility
     const isExternalRole = ['CLIENT', 'FREELANCER', 'SUBCONTRACTOR'].includes(user.role);
