@@ -88,52 +88,64 @@ npm run start      # serves the built app on 4266
 
 ## 3. Email setup & testing
 
-Email goes through **Resend** (`src/lib/mail.ts`), not raw SMTP. Two env vars:
+ICONA supports a **3-tier outbound email transport hierarchy** (`src/lib/mail.ts`):
+1. **Tenant SMTP Mailbox** (if configured by tenant ADMIN/MANAGER in **Settings → Email Delivery**).
+2. **Global Resend API** (if `RESEND_API_KEY` is set in `.env`).
+3. **Dev Console Fallback** (if no key or tenant SMTP is configured).
+
+### 3a. Platform default transport (Resend)
+
+Default platform delivery uses **Resend** (`src/lib/mail.ts`). Two env vars:
 
 ```bash
 RESEND_API_KEY="re_..."                     # from resend.com
 RESEND_FROM="ICONA <info@icona.muhammadabbasi.com>"   # domain must be verified in Resend
 ```
 
-### 3a. You can test the whole flow with NO real inbox
+### 3b. You can test the whole flow with NO real inbox
 
-`sendEmail` has a **dev fallback**: if `RESEND_API_KEY` is unset, it does **not**
-send - it prints the full email (recipient, subject, and the verification link)
-to the **server console** and returns `{ simulated: true }`
-(`src/lib/mail.ts:14-24`). So to test signup/verification without wiring Resend:
+`sendEmail` has a **dev fallback**: if `RESEND_API_KEY` is unset and no tenant SMTP is saved, it does **not** fail - it prints the full email (recipient, subject, and the verification link) to the **server console** and returns `{ simulated: true }` (`src/lib/mail.ts:60-70`). To test signup/verification without wiring Resend or SMTP:
 
 1. Comment out `RESEND_API_KEY` in `.env`, restart dev.
 2. Sign up (below). Read the verification URL straight from the terminal.
 
-### 3b. End-to-end email verification test
+### 3c. End-to-end email verification test
 
 The flow (`src/lib/verifyEmail.ts`, `src/app/api/auth/{signup,verify-email}`):
 
 1. **Sign up** at `/signup` with a fresh email + name.
-2. Server creates a hashed token in `emailVerificationToken` (24 h TTL, via
-   `systemPrisma`) and emails a link:
+2. Server creates a hashed token in `emailVerificationToken` (24 h TTL, via `systemPrisma`) and emails a link:
    `/api/auth/verify-email?token=<raw>&email=<addr>`.
-3. **Get the link:** from your inbox (real key) or the server console (fallback,
-   §3a). You can also read the token row in Prisma Studio.
+3. **Get the link:** from your inbox (real key/SMTP) or the server console (fallback, §3b). You can also read the token row in Prisma Studio.
 4. **Click it** → `emailVerified` is set → login is now allowed.
-5. **Before** verifying, try to log in - it should be blocked, and logging in
-   pre-verification triggers a **resend** (`src/lib/auth.ts`).
+5. **Before** verifying, try to log in - it should be blocked, and logging in pre-verification triggers a **resend** (`src/lib/auth.ts`).
 
-### 3c. Testing real delivery
+### 3d. Per-tenant custom SMTP email configuration (New Feature)
 
-Set a real `RESEND_API_KEY`, make sure `RESEND_FROM`'s domain is **verified in
-the Resend dashboard**, sign up with an address you control. Watch the server
-log for `✉️  Email sent via Resend ... ID: ...`.
+Tenant administrators can configure their own outbound mailbox under **Settings → Email Delivery** (`<EmailDeliveryCard />`, `GET/PUT/POST /api/settings/email`, `src/lib/email-config.ts`):
 
-**Common failures:** domain not verified in Resend → send throws (surfaced as a
-500 on signup); `RESEND_FROM` on an unverified domain → same; key missing →
-silently *simulated* (check the log for the `[DEV EMAIL LOG]` banner).
+1. **Log in as tenant ADMIN** (e.g. `farhan@apexbuilders.pk`).
+2. **Navigate to Settings** (`/settings`) → locate the **Email Delivery** card.
+3. **Select a Provider preset:**
+   - **Google / Gmail:** `smtp.gmail.com:587` (requires a Google App Password).
+   - **Outlook / Live / Hotmail:** `smtp-mail.outlook.com:587`.
+   - **Yahoo:** `smtp.mail.yahoo.com:465` (implicit TLS).
+   - **Custom SMTP:** Enter host (e.g. `mail.yourcompany.com`), port (587 or 465), and TLS preference.
+4. **Fill credentials:** `From name`, `From email`, `SMTP username`, and `Password / app-password`.
+5. **Click Save Email Settings:**
+   - Call `PUT /api/settings/email`.
+   - Server encrypts the SMTP password using `AES-256-GCM` (`passEnc`) before persisting to `Organization.emailConfig` (`src/lib/crypto.ts`).
+6. **Click Send Test Email:**
+   - Call `POST /api/settings/email`.
+   - Sends a live test message (`sendViaSmtp`) to the signed-in admin's email address.
+   - Watch server log for: `✉️  Email sent via tenant SMTP (smtp.gmail.com) to [farhan@apexbuilders.pk]. ID: ...`.
+7. **Verify Fallback Precedence:**
+   - When an email action is triggered with an `orgId` (e.g., automated project/task notifications), ICONA checks if `Organization.emailConfig` is configured.
+   - If present and valid, mail is dispatched via tenant SMTP. If empty, it falls back to Resend or the Dev Console Log.
 
-### 3d. Password reset
+### 3e. Password reset
 
-Same transport. `/forgot-password` → enter email → reset link/code emailed →
-`/reset-password`. Test with a seeded account; read the link from console if
-using the fallback.
+Same transport hierarchy. `/forgot-password` → enter email → reset link/code emailed → `/reset-password`. Test with a seeded account; read the link from console if using the fallback.
 
 ---
 
@@ -146,9 +158,7 @@ Log in as each seeded role and confirm the **sidebar and data scope** differ:
 - `usman@…` (MANAGER) → manager nav, no Super Admin.
 - `sara@…` (EMPLOYEE) → only assigned/engaged projects; no Finance, no Companies.
 
-Scope is enforced in `src/lib/projectAccess.ts` (`getProjectScope`). Quick
-regression: `npm test` includes `projectAccess.test.ts` asserting each role's
-project filter (§10).
+Scope is enforced in `src/lib/projectAccess.ts` (`getProjectScope`). Quick regression: `npm test` includes `projectAccess.test.ts` asserting each role's project filter (§10).
 
 ---
 
@@ -160,9 +170,11 @@ project filter (§10).
 | **Board** | Drag a card between Kanban columns | Status persists on reload |
 | **BOQ** | Import a BOQ workbook (Excel) | Domains → tasks → priced subtasks created; export round-trips |
 | **Finance / Ledger** | Add a transaction | Reflected in project ledger + double-entry accounting |
-| **Photos** | Upload a site photo to a task | Appears; URL points at R2 (§8) |
+| **Email Delivery** | Save SMTP credentials & click Send Test Email | Test email sent via tenant SMTP; success message displayed |
+| **Photos** | Upload a site photo to a task | Appears; URL points at R2 (§7) |
 | **Calendar** | Open `/calendar`, press **Sync** | Task/project deadlines + site visits appear as events; "Synced N ago" updates |
 | **Assistant** | Open the AI widget, ask *"list my projects"* | Answers from real data (§6) |
+| **Onboarding** | Complete 4-step wizard at `/onboarding` | Workspace initialized; settings & team invites saved |
 
 Repeat the read paths as EMPLOYEE to confirm scoping (should see fewer
 projects); as CLIENT (if you created one) confirm view-only, own-company only.
