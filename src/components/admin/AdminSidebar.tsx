@@ -31,8 +31,8 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-[#1A365D] text-white flex flex-col justify-between min-h-screen border-r border-slate-700 shadow-xl">
-      <div>
+    <aside className="sticky top-0 h-screen w-64 flex-shrink-0 bg-[#1A365D] text-white flex flex-col justify-between border-r border-slate-700 shadow-xl z-30">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-700/60 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] flex items-center justify-center shadow-md shadow-blue-500/20">
@@ -45,7 +45,7 @@ export function AdminSidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="p-3 space-y-1">
+        <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
