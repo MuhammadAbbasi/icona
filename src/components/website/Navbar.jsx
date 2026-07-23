@@ -5,7 +5,7 @@ import { SITE_CONFIG, resolveCta } from '@/config';
 
 const Logo = ({ light }) => (
   <a href="#top" className={`flex items-center gap-2 font-display text-lg font-bold tracking-tight ${light ? 'text-white' : ''}`}>
-    <div className="grid h-8 w-8 place-items-center">
+    <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-lg border border-border/40 bg-white p-0.5 shadow-sm">
       <img src="/logo-icon.png" alt="ICONA Logo" className="h-full w-full object-contain" />
     </div>
     <span>ICONA</span>
@@ -31,9 +31,8 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'border-b border-border/60 bg-background/80 shadow-sm backdrop-blur-lg' : 'border-b border-transparent bg-transparent'
-      }`}
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-border/60 bg-background/80 shadow-sm backdrop-blur-lg' : 'border-b border-transparent bg-transparent'
+        }`}
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <Logo light={light} />
@@ -43,9 +42,8 @@ const Navbar = () => {
             <a
               key={l.href}
               href={l.href}
-              className={`text-sm font-medium transition-colors ${
-                light ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`text-sm font-medium transition-colors ${light ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               {l.name}
             </a>
@@ -55,9 +53,8 @@ const Navbar = () => {
         <div className="hidden items-center gap-4 lg:flex">
           <a
             href={loginUrl}
-            className={`text-sm font-medium transition-colors ${
-              light ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
-            }`}
+            className={`text-sm font-medium transition-colors ${light ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
+              }`}
           >
             Log in
           </a>
