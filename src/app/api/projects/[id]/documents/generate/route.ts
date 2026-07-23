@@ -5,7 +5,7 @@ import { canAccessProject } from '@/lib/projectAccess';
 import { readBoqOriginal } from '@/lib/boqStorage';
 import { buildBoqExportWorkbook } from '@/lib/boqExport';
 import { getBoqExportInputs } from '@/lib/boqExportData';
-import { uploadDocument, documentFileName } from '@/lib/storage';
+import { uploadDocument, buildStorageFileName } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
@@ -58,7 +58,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const base = source.originalName.replace(/\.xlsx?$/i, '');
   const originalName = `${base} (revised ${revLabel}).xlsx`;
 
-  const { url, storagePath } = await uploadDocument(buffer, documentFileName(originalName));
+  const orgId: string = (user as any).orgId ?? 'shared';
+  const { url, storagePath } = await uploadDocument(buffer, buildStorageFileName(buffer, originalName), orgId);
 
   const doc = await prisma.projectDocument.create({
     data: {
