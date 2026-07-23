@@ -82,6 +82,11 @@ const Pricing = () => {
                       <p className="mt-1 h-5 text-xs text-muted-foreground">
                         {annual ? `Billed $${annualPrice(tier.monthly)}/year - ${billing.annualMonthsFree} months free` : 'Billed monthly, cancel anytime'}
                       </p>
+                      {annual && tier.annualPkr && (
+                        <p className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          ~PKR {tier.annualPkr}/year - 2 months free
+                        </p>
+                      )}
                     </>
                   )}
                 </div>

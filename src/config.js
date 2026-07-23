@@ -125,6 +125,7 @@ export const SITE_CONFIG = {
       name: 'Starter',
       monthly: 25,
       monthlyPkr: '9,999',
+      annualPkr: '99,990',
       tagline: 'For a single small firm getting organised',
       limits: ['5 active projects', '3 team members'],
       features: ['BOQ, project control & finance', 'Complete ledger & cash flow', 'Labour & attendance sheets', 'Email support'],
@@ -136,6 +137,7 @@ export const SITE_CONFIG = {
       name: 'Growth',
       monthly: 50,
       monthlyPkr: '14,999',
+      annualPkr: '1,49,990',
       tagline: 'For growing contractors running multiple sites',
       limits: ['25 active projects', '15 team members'],
       features: [
