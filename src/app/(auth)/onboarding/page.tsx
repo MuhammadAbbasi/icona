@@ -115,7 +115,14 @@ function OnboardingWizard() {
   };
 
   const getPlanPrice = (planKey: 'starter' | 'growth' | 'enterprise') => {
+    if (planKey === 'enterprise') return 'Contact Sales for Custom Pricing';
     const plan = plans[planKey];
+    if (planKey === 'starter') {
+      return billingPeriod === 'monthly' ? '$25/mo (~PKR 9,999/mo)' : '$250/yr (~PKR 99,990/yr)';
+    }
+    if (planKey === 'growth') {
+      return billingPeriod === 'monthly' ? '$50/mo (~PKR 14,999/mo)' : '$500/yr (~PKR 149,990/yr)';
+    }
     return billingPeriod === 'monthly' ? `$${plan.monthlyPrice}/mo` : `$${plan.annualPrice}/yr`;
   };
 
@@ -312,40 +319,42 @@ function OnboardingWizard() {
                 <p className="text-[11px] text-slate-400">
                   Define as many taxes as your firm actually applies, each scoped to income, expense, or both - e.g. Sales Tax 15% on income, Withholding Tax 4% on expenses.
                 </p>
-                {taxRules.map((t, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_90px_120px_auto] gap-2 items-center">
-                    <Input
-                      placeholder="Tax name (e.g. Sales Tax)"
-                      value={t.name}
-                      onChange={(e) => updateTaxRule(i, { name: e.target.value })}
-                      className="h-10 border-slate-200"
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Rate %"
-                      value={t.rate}
-                      onChange={(e) => updateTaxRule(i, { rate: Number(e.target.value) })}
-                      className="h-10 border-slate-200"
-                    />
-                    <select
-                      value={t.appliesTo}
-                      onChange={(e) => updateTaxRule(i, { appliesTo: e.target.value as TaxAppliesTo })}
-                      className="h-10 px-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 outline-none"
-                    >
-                      <option value="BOTH">Income & Expense</option>
-                      <option value="INCOME">Income only</option>
-                      <option value="EXPENSE">Expense only</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => removeTaxRule(i)}
-                      className="h-10 w-10 grid place-items-center text-slate-400 hover:text-red-500"
-                      aria-label="Remove tax"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                <div className="space-y-3">
+                  {taxRules.map((t, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_80px_minmax(170px,auto)_40px] sm:grid-cols-[1fr_100px_minmax(180px,auto)_40px] gap-2.5 items-center">
+                      <Input
+                        placeholder="Tax Name (e.g. Sales Tax)"
+                        value={t.name}
+                        onChange={(e) => updateTaxRule(i, { name: e.target.value })}
+                        className="h-10 border-slate-200 text-sm"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Rate %"
+                        value={t.rate}
+                        onChange={(e) => updateTaxRule(i, { rate: Number(e.target.value) })}
+                        className="h-10 border-slate-200 text-sm"
+                      />
+                      <select
+                        value={t.appliesTo}
+                        onChange={(e) => updateTaxRule(i, { appliesTo: e.target.value as TaxAppliesTo })}
+                        className="h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-900 outline-none min-w-[170px] cursor-pointer"
+                      >
+                        <option value="BOTH">Income & Expense</option>
+                        <option value="INCOME">Income only</option>
+                        <option value="EXPENSE">Expense only</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => removeTaxRule(i)}
+                        className="h-10 w-10 grid place-items-center text-slate-400 hover:text-red-500 rounded-lg hover:bg-slate-100 transition-colors"
+                        aria-label="Remove tax"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 {taxRules.length === 0 && (
                   <p className="text-xs text-slate-400 italic">No taxes defined - you can add them anytime from Settings.</p>
                 )}
