@@ -20,6 +20,9 @@ interface TaskFormData {
   priority: string;
   dueDate: string;
   assigneeId: string;
+  unit: string;
+  quantity: string;
+  unitRate: string;
 }
 
 interface ExistingTask {
@@ -32,6 +35,8 @@ interface ExistingTask {
   assigneeId?: string | null;
   unit?: string | null;
   quantity?: number | null;
+  rate?: number | null;
+  unitRate?: number | null;
 }
 
 interface Props {
@@ -74,6 +79,9 @@ export function TaskModal({ open, onOpenChange, domainId, domainName, users, exi
       priority:    existingTask?.priority ?? 'MEDIUM',
       dueDate:     existingTask?.dueDate ? new Date(existingTask.dueDate).toISOString().split('T')[0] : '',
       assigneeId:  existingTask?.assigneeId ?? '',
+      unit:        existingTask?.unit ?? '',
+      quantity:    existingTask?.quantity ? String(existingTask.quantity) : '',
+      unitRate:    existingTask?.rate ? String(existingTask.rate) : (existingTask?.unitRate ? String(existingTask.unitRate) : ''),
     };
   }
 
@@ -118,6 +126,9 @@ export function TaskModal({ open, onOpenChange, domainId, domainName, users, exi
           priority:    form.priority,
           dueDate:     form.dueDate || null,
           assigneeId:  form.assigneeId || null,
+          unit:        form.unit.trim() || null,
+          quantity:    form.quantity ? Number(form.quantity) : null,
+          unitRate:    form.unitRate ? Number(form.unitRate) : null,
         }),
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
@@ -168,6 +179,44 @@ export function TaskModal({ open, onOpenChange, domainId, domainName, users, exi
               placeholder="Optional details, scope, notes…"
               rows={2}
             />
+          </div>
+
+          {/* Quantity, Unit, and Unit Rate */}
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="task-unit">Unit</Label>
+              <Input
+                id="task-unit"
+                value={form.unit}
+                onChange={(e) => set('unit')(e.target.value)}
+                placeholder="e.g. Sft, Bags, Rft"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="task-qty">Quantity</Label>
+              <Input
+                id="task-qty"
+                type="number"
+                step="any"
+                value={form.quantity}
+                onChange={(e) => set('quantity')(e.target.value)}
+                placeholder="e.g. 500"
+                className="h-10 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="task-rate">Unit Rate (PKR)</Label>
+              <Input
+                id="task-rate"
+                type="number"
+                step="any"
+                value={form.unitRate}
+                onChange={(e) => set('unitRate')(e.target.value)}
+                placeholder="e.g. 1200"
+                className="h-10 text-sm"
+              />
+            </div>
           </div>
 
           {/* Status + Priority */}
