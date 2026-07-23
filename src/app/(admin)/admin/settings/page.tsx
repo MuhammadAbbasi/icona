@@ -324,41 +324,82 @@ export default function AdminSettingsPage() {
               </p>
             </div>
 
-            {/* Test Verification Input for Telegram */}
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-              <label className="block font-semibold text-slate-700">Verification Test Target User ID / Chat ID / Phone</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={testTgTargetUser}
-                  onChange={(e) => setTestTgTargetUser(e.target.value)}
-                  placeholder="Telegram User ID (e.g. 987654321) or @username"
-                  className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-medium"
-                />
-                <button
-                  type="button"
-                  disabled={testingChannel === 'telegram'}
-                  onClick={() =>
-                    handleTestConnection('telegram', {
-                      username: masterTgUsername,
-                      token: masterTgToken,
-                      trustedUsers: trustedTgUsers,
-                      testTargetUser: testTgTargetUser,
-                    })
-                  }
-                  className="px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
-                >
-                  {testingChannel === 'telegram' ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <SendHorizontal className="w-3.5 h-3.5" />
-                  )}
-                  <span>Test Telegram Verification</span>
-                </button>
+            {/* Test Verification & Webhook Sync Input for Telegram */}
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Public Domain Webhook URL (HTTPS)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={testTgTargetUser.startsWith('https://') ? testTgTargetUser : 'https://icona.pk'}
+                    onChange={(e) => setTestTgTargetUser(e.target.value)}
+                    placeholder="https://yourdomain.com"
+                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-medium text-xs"
+                    id="tg-webhook-input"
+                  />
+                  <button
+                    type="button"
+                    disabled={testingChannel === 'telegram'}
+                    onClick={() => {
+                      const input = (document.getElementById('tg-webhook-input') as HTMLInputElement)?.value;
+                      handleTestConnection('telegram', {
+                        username: masterTgUsername,
+                        token: masterTgToken,
+                        trustedUsers: trustedTgUsers,
+                        webhookUrl: input,
+                        testTargetUser: testTgTargetUser,
+                      });
+                    }}
+                    className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg flex items-center gap-1.5 transition-colors text-xs shrink-0"
+                  >
+                    {testingChannel === 'telegram' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <SendHorizontal className="w-3.5 h-3.5" />
+                    )}
+                    <span>Sync & Verify Telegram Webhook</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Connect your live domain endpoint (`/api/telegram/webhook`) to receive live message updates & commands on Telegram.
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">
-                💡 <b>Telegram Tip:</b> Open <b>{masterTgUsername || '@yourbot'}</b> in Telegram and click <b>/start</b> first to allow the bot to message you, or use your numeric User ID (get it from <b>@userinfobot</b> on Telegram).
-              </p>
+
+              <div className="border-t border-slate-200 pt-2">
+                <label className="block font-semibold text-slate-700 mb-1">Verification Test Target (User ID / @username)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={testTgTargetUser}
+                    onChange={(e) => setTestTgTargetUser(e.target.value)}
+                    placeholder="Telegram User ID (e.g. 987654321) or @username"
+                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-slate-900 font-medium text-xs"
+                  />
+                  <button
+                    type="button"
+                    disabled={testingChannel === 'telegram'}
+                    onClick={() =>
+                      handleTestConnection('telegram', {
+                        username: masterTgUsername,
+                        token: masterTgToken,
+                        trustedUsers: trustedTgUsers,
+                        testTargetUser: testTgTargetUser,
+                      })
+                    }
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg flex items-center gap-1.5 transition-colors text-xs shrink-0"
+                  >
+                    {testingChannel === 'telegram' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>Send Test Message</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 <b>Telegram Tip:</b> Open <b>{masterTgUsername || '@yourbot'}</b> in Telegram and click <b>/start</b> first to allow the bot to message you, or use your numeric User ID (get it from <b>@userinfobot</b> on Telegram).
+                </p>
+              </div>
             </div>
 
             <button
