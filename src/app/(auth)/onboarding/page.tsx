@@ -302,8 +302,18 @@ function OnboardingWizard() {
                     onChange={(e) => setTimezone(e.target.value)}
                     className="w-full h-11 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   >
-                    <option value="Asia/Karachi">Asia/Karachi (GMT+5:00)</option>
-                    <option value="Asia/Dubai">Asia/Dubai (GMT+4:00)</option>
+                    <option value="Asia/Karachi">Asia/Karachi (PKT, GMT+5:00)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GST, GMT+4:00)</option>
+                    <option value="Asia/Riyadh">Asia/Riyadh (AST, GMT+3:00)</option>
+                    <option value="Asia/Kolkata">Asia/Kolkata (IST, GMT+5:30)</option>
+                    <option value="Asia/Dhaka">Asia/Dhaka (BST, GMT+6:00)</option>
+                    <option value="Asia/Singapore">Asia/Singapore (SGT, GMT+8:00)</option>
+                    <option value="Europe/London">Europe/London (GMT/BST)</option>
+                    <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                    <option value="America/New_York">America/New_York (EST/EDT)</option>
+                    <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                    <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
                     <option value="UTC">UTC (Coordinated Universal Time)</option>
                   </select>
                 </div>
