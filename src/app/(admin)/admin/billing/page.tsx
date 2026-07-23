@@ -8,6 +8,31 @@ export default function AdminBillingPage() {
   const [invoicingClient, setInvoicingClient] = useState('');
   const [invoiceAmount, setInvoiceAmount] = useState('');
   const [invoiceIssued, setInvoiceIssued] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    Promise.all([
+      fetch('/api/admin/stats').then((res) => res.json()),
+      fetch('/api/admin/clients').then((res) => res.json()),
+    ])
+      .then(([statsData, clientsData]) => {
+        if (!statsData.error) setStats(statsData);
+        if (clientsData.clients) setClients(clientsData.clients);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const mrrUsd = stats?.summary.mrrUsd ?? 0;
+  const mrrPkr = stats?.summary.mrrPkr ?? 0;
+  const arrUsd = mrrUsd * 12;
+  const arrPkr = mrrPkr * 12;
+
+  const starterCount = clients.filter((c) => (c.planTier || 'starter') === 'starter').length;
+  const growthCount = clients.filter((c) => c.planTier === 'growth').length;
+  const enterpriseCount = clients.filter((c) => c.planTier === 'enterprise').length;
 
   const handleIssueInvoice = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,19 +54,27 @@ export default function AdminBillingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">Monthly Recurring Revenue</span>
-            <div className="text-2xl font-bold text-[#0F172A] mt-2">$2,450 USD</div>
-            <span className="text-xs text-slate-500 mt-1 block">≈ PKR 686,000 / month</span>
+            <div className="text-2xl font-bold text-[#0F172A] mt-2">
+              ${loading ? '...' : mrrUsd.toLocaleString()} USD
+            </div>
+            <span className="text-xs text-slate-500 mt-1 block">
+              ≈ PKR {loading ? '...' : mrrPkr.toLocaleString()} / month
+            </span>
             <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-              <TrendingUp className="w-3.5 h-3.5" /> +14.2% month-over-month
+              <TrendingUp className="w-3.5 h-3.5" /> Real-time active subscriptions
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
             <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">Annual Recurring Revenue</span>
-            <div className="text-2xl font-bold text-[#0F172A] mt-2">$29,400 USD</div>
-            <span className="text-xs text-slate-500 mt-1 block">≈ PKR 8,232,000 / year</span>
+            <div className="text-2xl font-bold text-[#0F172A] mt-2">
+              ${loading ? '...' : arrUsd.toLocaleString()} USD
+            </div>
+            <span className="text-xs text-slate-500 mt-1 block">
+              ≈ PKR {loading ? '...' : arrPkr.toLocaleString()} / year
+            </span>
             <div className="mt-3 pt-3 border-t border-slate-100 text-xs font-semibold text-blue-600">
-              Annual Contract Savings Active
+              Annualized Contract Value
             </div>
           </div>
 
@@ -50,15 +83,15 @@ export default function AdminBillingPage() {
             <div className="space-y-1 mt-2 text-xs font-semibold">
               <div className="flex justify-between">
                 <span className="text-slate-600">Starter ($25/mo):</span>
-                <span className="text-slate-900">4 clients</span>
+                <span className="text-slate-900">{loading ? '...' : `${starterCount} client(s)`}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Growth ($50/mo):</span>
-                <span className="text-slate-900">6 clients</span>
+                <span className="text-slate-900">{loading ? '...' : `${growthCount} client(s)`}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Enterprise ($75/mo):</span>
-                <span className="text-slate-900">3 clients</span>
+                <span className="text-slate-900">{loading ? '...' : `${enterpriseCount} client(s)`}</span>
               </div>
             </div>
           </div>
