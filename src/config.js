@@ -115,7 +115,7 @@ export const SITE_CONFIG = {
 
   billing: {
     annualMonthsFree: 2, // pay for 10 months, get 12
-    note: 'Prices in USD. Local PKR billing available - talk to us.',
+    note: 'Prices in USD & localized PKR equivalent available.',
     limitNote:
       'Every plan has clear limits. When your firm reaches one, ICONA asks you to upgrade - you never pay for headroom you are not using.',
   },
@@ -124,6 +124,7 @@ export const SITE_CONFIG = {
     {
       name: 'Starter',
       monthly: 25,
+      monthlyPkr: '9,999',
       tagline: 'For a single small firm getting organised',
       limits: ['5 active projects', '3 team members'],
       features: ['BOQ, project control & finance', 'Complete ledger & cash flow', 'Labour & attendance sheets', 'Email support'],
@@ -134,6 +135,7 @@ export const SITE_CONFIG = {
     {
       name: 'Growth',
       monthly: 50,
+      monthlyPkr: '14,999',
       tagline: 'For growing contractors running multiple sites',
       limits: ['25 active projects', '15 team members'],
       features: [
@@ -148,8 +150,9 @@ export const SITE_CONFIG = {
     },
     {
       name: 'Enterprise',
-      monthly: 75,
-      tagline: 'For established firms that need it all',
+      monthly: null,
+      customPricingLabel: 'Contact Sales for Custom Pricing',
+      tagline: 'For established firms that need custom configuration & dedicated support',
       limits: ['Unlimited projects', 'Unlimited team members'],
       features: [
         'Everything in Growth',
@@ -157,7 +160,7 @@ export const SITE_CONFIG = {
         'Investor & lender registry',
         'Custom onboarding & dedicated support',
       ],
-      cta: 'Talk to us',
+      cta: 'Contact Sales',
       ctaHref: '#contact',
       featured: false,
     },

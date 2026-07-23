@@ -45,7 +45,8 @@ const Pricing = () => {
 
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         {pricing.map((tier, i) => {
-          const perMonth = annual ? Math.round(annualPrice(tier.monthly) / 12) : tier.monthly;
+          const isEnterprise = !tier.monthly;
+          const perMonth = annual ? Math.round(annualPrice(tier.monthly || 75) / 12) : tier.monthly;
           return (
             <Reveal key={tier.name} delay={i * 110} className="h-full">
               <div
@@ -61,13 +62,29 @@ const Pricing = () => {
                 <h3 className="font-display text-lg font-bold">{tier.name}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{tier.tagline}</p>
 
-                <p className="mt-6">
-                  <span className="font-display text-4xl font-extrabold">${perMonth}</span>
-                  <span className="text-base font-medium text-muted-foreground">/mo</span>
-                </p>
-                <p className="mt-1 h-5 text-xs text-muted-foreground">
-                  {annual ? `Billed $${annualPrice(tier.monthly)}/year - ${billing.annualMonthsFree} months free` : 'Billed monthly, cancel anytime'}
-                </p>
+                <div className="mt-6">
+                  {isEnterprise ? (
+                    <div>
+                      <span className="font-display text-2xl font-extrabold text-primary">Contact Sales</span>
+                      <p className="text-xs font-semibold text-muted-foreground mt-1">Custom Pricing for Enterprise</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="flex items-baseline gap-2">
+                        <span className="font-display text-4xl font-extrabold">${perMonth}</span>
+                        <span className="text-base font-medium text-muted-foreground">/mo</span>
+                        {tier.monthlyPkr && (
+                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                            ~PKR {tier.monthlyPkr}/mo
+                          </span>
+                        )}
+                      </p>
+                      <p className="mt-1 h-5 text-xs text-muted-foreground">
+                        {annual ? `Billed $${annualPrice(tier.monthly)}/year - ${billing.annualMonthsFree} months free` : 'Billed monthly, cancel anytime'}
+                      </p>
+                    </>
+                  )}
+                </div>
 
                 <div className="mt-6 rounded-xl border border-border bg-muted/60 p-4">
                   <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
