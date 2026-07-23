@@ -12,7 +12,7 @@ export function uploadRoot(): string {
     : path.resolve(process.cwd(), 'storage', 'uploads');
 }
 
-const ALLOWED_TYPES = ['avatars', 'logos', 'photos', 'thumbnails'];
+const ALLOWED_TYPES = ['avatars', 'logos', 'photos', 'thumbnails', 'invoices', 'documents', 'receipts', 'files'];
 
 /**
  * Save an uploaded file to the local storage.

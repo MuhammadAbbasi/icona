@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { uploadImage } from '@/lib/storage';
-import crypto from 'node:crypto';
+import { uploadImage, buildStorageFileName } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
@@ -76,11 +75,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File content does not match its extension' }, { status: 400 });
     }
 
-    // Sanitize filename to avoid collisions or script injections
-    const sanitizedName = `${crypto.randomBytes(16).toString('hex')}${ext}`;
+    // Build a collision-proof filename: sha256(content)[0..16]_<timestamp><ext>
+    const safeName = buildStorageFileName(buffer, originalName);
 
-    // Save file (using Cloudinary or local fallback)
-    const { url } = await uploadImage(buffer, sanitizedName, type as any);
+    // Save file under the org's isolated folder
+    const orgId: string = (session.user as any).orgId ?? 'shared';
+    const { url } = await uploadImage(buffer, safeName, type as any, orgId);
 
     // Return the URL path to the saved file
     return NextResponse.json({
