@@ -27,6 +27,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate password strength against NIST 12+ character security standards & name/company blocklist
+    const { validatePasswordStrength } = await import('@/lib/password');
+    const pwdResult = validatePasswordStrength(password, { userName: name, companyName: orgName, email });
+    if (!pwdResult.valid) {
+      return NextResponse.json(
+        { error: pwdResult.message || 'Password does not meet security requirements.' },
+        { status: 400 }
+      );
+    }
+
     // 1. Check if email is already taken globally
     const existingUser = await systemPrisma.user.findUnique({
       where: { email: cleanEmail },
