@@ -14,12 +14,13 @@ export const metadata = { title: 'Finances' };
 export default async function LedgerPage() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role ?? '';
-  if (!['ADMIN', 'MANAGER'].includes(role)) redirect('/');
+  const orgId = session?.user?.orgId;
+  if (!['ADMIN', 'MANAGER'].includes(role) || !orgId) redirect('/');
 
   const [txns, projects, owners, bankAccountsResult, loansData, lendersResult, investorsResult, investmentsData, investorPayoutsData] = await Promise.all([
     prisma.transaction.findMany({
       where: {
-        project: { deletedAt: null }
+        project: { orgId, deletedAt: null }
       },
       orderBy: { date: 'desc' },
       select: {
@@ -34,18 +35,18 @@ export default async function LedgerPage() {
       },
     }),
     prisma.project.findMany({
-      where: { deletedAt: null },
+      where: { orgId, deletedAt: null },
       orderBy: { name: 'asc' },
       select: { id: true, name: true, budget: true, company: { select: { name: true } } },
     }),
     prisma.user.findMany({
-      where: { role: 'ADMIN' },
+      where: { orgId, role: 'ADMIN' },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
     getBankAccounts(),
     prisma.loan.findMany({
-      where: { project: { deletedAt: null } },
+      where: { project: { orgId, deletedAt: null } },
       include: {
         project: { select: { id: true, name: true } },
         bankAccount: { select: { name: true } },
@@ -61,27 +62,27 @@ export default async function LedgerPage() {
     prisma.investment.findMany({
       where: {
         OR: [
-          { projectId: null },
-          { project: { deletedAt: null } }
+          { project: { orgId, deletedAt: null } },
+          { investor: { orgId } }
         ]
       },
       include: {
         investor: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        bankAccount: { select: { name: true } }
+        bankAccount: { select: { name: true } },
       }
     }),
     prisma.investorPayout.findMany({
       where: {
         OR: [
-          { projectId: null },
-          { project: { deletedAt: null } }
+          { project: { orgId, deletedAt: null } },
+          { investor: { orgId } }
         ]
       },
       include: {
         investor: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        bankAccount: { select: { name: true } }
+        bankAccount: { select: { name: true } },
       }
     })
   ]);
