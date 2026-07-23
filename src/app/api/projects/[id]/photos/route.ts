@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { uploadImage } from '@/lib/storage';
+import { uploadImage, buildStorageFileName } from '@/lib/storage';
 import exifr from 'exifr';
-import crypto from 'node:crypto';
 
 export const runtime = 'nodejs';
 
@@ -116,13 +115,14 @@ export async function POST(
       console.warn('Failed to parse EXIF metadata:', e);
     }
 
-    // Upload files using the storage adapter (Cloudinary or local fallback)
-    const sanitizedName = `${crypto.randomBytes(16).toString('hex')}${ext}`;
-    const thumbSanitizedName = `thumb_${crypto.randomBytes(16).toString('hex')}${ext}`;
+    // Build collision-proof filenames using sha256(content) + timestamp
+    const orgId: string = (session.user as any).orgId ?? 'shared';
+    const sanitizedName = buildStorageFileName(fileBuffer, originalName);
+    const thumbSanitizedName = `thumb_${buildStorageFileName(thumbBuffer, originalName)}`;
 
     const [uploadedFile, uploadedThumb] = await Promise.all([
-      uploadImage(fileBuffer, sanitizedName, 'photos'),
-      uploadImage(thumbBuffer, thumbSanitizedName, 'thumbnails'),
+      uploadImage(fileBuffer, sanitizedName, 'photos', orgId),
+      uploadImage(thumbBuffer, thumbSanitizedName, 'thumbnails', orgId),
     ]);
 
     // Save metadata in database
