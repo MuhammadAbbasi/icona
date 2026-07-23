@@ -1,0 +1,24 @@
+{
+	"nodes":[
+		{"id":"node-index","type":"file","file":"00 - Index MOC.md","x":0,"y":0,"width":380,"height":280,"color":"5"},
+		{"id":"node-strategy","type":"file","file":"01 - Project Overview & Strategy.md","x":-500,"y":-350,"width":380,"height":260,"color":"3"},
+		{"id":"node-arch","type":"file","file":"02 - System Architecture & Tech Stack.md","x":500,"y":-350,"width":380,"height":260,"color":"5"},
+		{"id":"node-brand","type":"file","file":"03 - Brand & Design System.md","x":500,"y":0,"width":380,"height":260,"color":"4"},
+		{"id":"node-codebase","type":"file","file":"04 - Directory & Codebase Map.md","x":500,"y":350,"width":380,"height":260,"color":"6"},
+		{"id":"node-modules","type":"file","file":"05 - Modules & Features Map.md","x":-500,"y":0,"width":380,"height":260,"color":"2"},
+		{"id":"node-integrations","type":"file","file":"06 - Integrations & Workflows.md","x":-500,"y":350,"width":380,"height":490,"color":"1"},
+		{"id":"node-guidelines","type":"file","file":"07 - Development & Agent Guidelines.md","x":0,"y":380,"width":380,"height":240,"color":"1"}
+	],
+	"edges":[
+		{"id":"edge-idx-strat","fromNode":"node-index","fromSide":"left","toNode":"node-strategy","toSide":"right","label":"Business Scope"},
+		{"id":"edge-idx-arch","fromNode":"node-index","fromSide":"right","toNode":"node-arch","toSide":"left","label":"Tech Foundation"},
+		{"id":"edge-idx-brand","fromNode":"node-index","fromSide":"right","toNode":"node-brand","toSide":"left","label":"Design Tokens"},
+		{"id":"edge-idx-codebase","fromNode":"node-index","fromSide":"right","toNode":"node-codebase","toSide":"left","label":"File Tree"},
+		{"id":"edge-idx-modules","fromNode":"node-index","fromSide":"left","toNode":"node-modules","toSide":"right","label":"ERP Features"},
+		{"id":"edge-idx-integrations","fromNode":"node-index","fromSide":"left","toNode":"node-integrations","toSide":"right","label":"Services & Bots"},
+		{"id":"edge-idx-guidelines","fromNode":"node-index","fromSide":"bottom","toNode":"node-guidelines","toSide":"top","label":"Agent Rules"},
+		{"id":"edge-strat-modules","fromNode":"node-strategy","fromSide":"bottom","toNode":"node-modules","toSide":"top","label":"Drives Features"},
+		{"id":"edge-arch-codebase","fromNode":"node-arch","fromSide":"bottom","toNode":"node-codebase","toSide":"top","label":"Implements Layout"},
+		{"id":"edge-brand-arch","fromNode":"node-brand","fromSide":"top","toNode":"node-arch","toSide":"bottom","label":"Styles App"}
+	]
+}
