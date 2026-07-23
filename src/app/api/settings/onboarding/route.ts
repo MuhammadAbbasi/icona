@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { systemPrisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/mail';
 
 export async function POST(request: Request) {
   try {
@@ -75,10 +76,64 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. Invite email handling (mock)
-    if (inviteEmails && inviteEmails.length > 0) {
-      console.log(`[Onboarding] Invites queued for ${inviteEmails.join(', ')} in organization ${orgId}`);
-      // In production, send invite emails here
+    // 4. Invite email handling & Employee user creation
+    if (inviteEmails && Array.isArray(inviteEmails) && inviteEmails.length > 0) {
+      const base = process.env.NEXTAUTH_URL || 'http://localhost:4266';
+      for (const rawEmail of inviteEmails) {
+        const email = String(rawEmail).trim().toLowerCase();
+        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) continue;
+
+        try {
+          // Check if user already exists
+          const existing = await systemPrisma.user.findUnique({ where: { email } });
+          if (!existing) {
+            // Create user account with EMPLOYEE role under this org
+            const nameFromEmail = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            await systemPrisma.user.create({
+              data: {
+                email,
+                name: nameFromEmail,
+                role: 'EMPLOYEE',
+                orgId,
+                companyId: mainCompany?.id ?? null,
+                password: '', // Onboarding invite: sets password via reset link or initial login
+                taskAssignNotifications: true,
+                dailyTaskDigest: true,
+              },
+            });
+          }
+
+          // Dispatch joining invitation email
+          const joinUrl = `${base}/signup?email=${encodeURIComponent(email)}&orgId=${orgId}`;
+          const mailHtml = `
+            <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0F172A; background-color: #F8FAFC;">
+              <div style="background-color: #1A365D; padding: 28px 24px; border-radius: 12px 12px 0 0; text-align: center; color: #FFFFFF;">
+                <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Team Invitation</h1>
+                <p style="margin: 6px 0 0 0; font-size: 13px; color: #38BDF8; font-weight: 500;">ICONA - Construction ERP & CRM</p>
+              </div>
+              <div style="background-color: #FFFFFF; padding: 32px 28px; border: 1px solid #E2E8F0; border-top: none; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.05);">
+                <p style="margin-top: 0; font-size: 15px; color: #0F172A;">Hello,</p>
+                <p style="font-size: 14px; color: #64748B; line-height: 1.6;">You have been invited to join <strong>${org.name}</strong> on ICONA Construction Software as a team member.</p>
+                <div style="text-align: center; margin: 28px 0;">
+                  <a href="${joinUrl}" style="display: inline-block; background-color: #2563EB; color: #FFFFFF; padding: 14px 32px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+                    Join Your Workspace
+                  </a>
+                </div>
+                <p style="font-size: 12px; color: #94A3B8; margin-bottom: 0; text-align: center;">© ICONA Construction Software. All rights reserved.</p>
+              </div>
+            </div>
+          `;
+
+          await sendEmail({
+            to: email,
+            subject: `Invitation to join ${org.name} on ICONA`,
+            html: mailHtml,
+            orgId,
+          });
+        } catch (inviteErr) {
+          console.error(`Failed to create/invite employee ${email}:`, inviteErr);
+        }
+      }
     }
 
     return NextResponse.json(
