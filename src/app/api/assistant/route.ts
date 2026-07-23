@@ -25,6 +25,27 @@ const bodySchema = z.object({
     .max(40),
 });
 
+function normalizeLlmBaseUrl(provider: string, rawUrl: string): string {
+  let cleaned = (rawUrl || '').trim().replace(/\/+$/, '');
+  if (!cleaned) {
+    return provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://openrouter.ai/api/v1';
+  }
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+    cleaned = 'http://' + cleaned;
+  }
+  if (provider === 'ollama') {
+    // Check if port is missing
+    const hasPort = /:\d+/.test(cleaned.replace(/^https?:\/\//, ''));
+    if (!hasPort && !cleaned.includes('localhost') && !cleaned.includes('127.0.0.1')) {
+      cleaned = `${cleaned}:11434`;
+    }
+    if (!cleaned.endsWith('/v1')) {
+      cleaned = `${cleaned}/v1`;
+    }
+  }
+  return cleaned;
+}
+
 async function getLLMConfig() {
   const settings = await prisma.systemSetting.findMany({
     where: {
@@ -47,12 +68,12 @@ async function getLLMConfig() {
   }, {} as Record<string, string>);
 
   const provider = map.llm_active_provider || process.env.LLM_PROVIDER || 'ollama';
-  const model = map.llm_active_model || process.env.LLM_MODEL || 'qwen2.5:7b-instruct';
+  const model = map.llm_active_model || process.env.LLM_MODEL || 'qwen2.5:3b-instruct';
   const maxTokens = parseInt(map.llm_max_tokens || '2048', 10);
   const temperature = parseFloat(map.llm_temperature || '0.2');
   const promptOverride = map.llm_system_prompt_override || '';
 
-  let baseUrl = process.env.LLM_BASE_URL || (provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://generativelanguage.googleapis.com');
+  let rawBaseUrl = process.env.LLM_BASE_URL || (provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://openrouter.ai/api/v1');
   let apiKey = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || 'ollama';
 
   if (map.llm_custom_models) {
@@ -60,7 +81,7 @@ async function getLLMConfig() {
       const models = JSON.parse(map.llm_custom_models);
       const active = models.find((m: any) => m.provider === provider && m.model === model) || models[0];
       if (active) {
-        if (active.baseUrl) baseUrl = active.baseUrl;
+        if (active.baseUrl) rawBaseUrl = active.baseUrl;
         if (active.apiKey && active.apiKey !== '••••••••') {
           apiKey = decryptSecret(active.apiKey);
         }
@@ -70,6 +91,7 @@ async function getLLMConfig() {
     }
   }
 
+  const baseUrl = normalizeLlmBaseUrl(provider, rawBaseUrl);
   return { provider, model, baseUrl, apiKey, maxTokens, temperature, promptOverride };
 }
 
@@ -109,25 +131,54 @@ function buildSystemPrompt(user: ApiUser, promptOverride: string): string {
 async function runChat(user: ApiUser, history: { role: string; content: string }[]): Promise<string> {
   const config = await getLLMConfig();
   const messages: any[] = [{ role: 'system', content: buildSystemPrompt(user, config.promptOverride) }, ...history];
-  const url = `${config.baseUrl.replace(/\/+$/, '')}/chat/completions`;
+  const url = `${config.baseUrl}/chat/completions`;
 
   // Fixed 6-iteration tool loop
   for (let i = 0; i < 6; i++) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages,
-        tools: assistantTools,
-        tool_choice: 'auto',
-        temperature: config.temperature,
-        max_tokens: config.maxTokens,
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: config.model,
+          messages,
+          tools: assistantTools,
+          tool_choice: 'auto',
+          temperature: config.temperature,
+          max_tokens: config.maxTokens,
+        }),
+      });
+    } catch (fetchErr: any) {
+      console.error(`LLM Connection error to ${url}:`, fetchErr);
+      if (process.env.OPENROUTER_API_KEY) {
+        // Fallback to cloud OpenRouter
+        const fallbackRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'qwen/qwen-2.5-7b-instruct',
+            messages,
+            tools: assistantTools,
+            tool_choice: 'auto',
+            temperature: config.temperature,
+            max_tokens: config.maxTokens,
+          }),
+        });
+        if (fallbackRes.ok) {
+          const data = await fallbackRes.json();
+          const choice = data.choices?.[0]?.message;
+          if (choice) return choice.content || 'Completed request using cloud fallback.';
+        }
+      }
+      throw new Error(`Could not connect to Ollama model endpoint at ${config.baseUrl}. Please check that Ollama is running and accessible.`);
+    }
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');
