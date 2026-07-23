@@ -74,15 +74,15 @@ export function Sidebar() {
               className={cn(
                 'group flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-sidebar-accent text-white'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                  : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
               )}
             >
               <div className="flex items-center gap-3">
-                <Icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-primary' : 'text-slate-500 group-hover:text-slate-300')} />
+                <Icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-primary-foreground' : 'text-slate-500 group-hover:text-sidebar-foreground')} />
                 {item.label}
               </div>
-              {isActive && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
+              {isActive && <ChevronRight className="h-3.5 w-3.5 opacity-80 text-primary-foreground" />}
             </Link>
           );
         })}
