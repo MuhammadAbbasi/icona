@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { systemPrisma } from '@/lib/prisma';
 import { hashPassword, hashResetCode, safeCompareHash } from '@/lib/password';
 
 export async function POST(req: Request) {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     // Find the latest token for this email
-    const resetToken = await prisma.passwordResetToken.findFirst({
+    const resetToken = await systemPrisma.passwordResetToken.findFirst({
       where: { email },
       orderBy: { createdAt: 'desc' },
     });
@@ -43,12 +43,12 @@ export async function POST(req: Request) {
     // Hash new password and update user record
     const hashedPassword = await hashPassword(newPassword);
 
-    await prisma.$transaction([
-      prisma.user.update({
+    await systemPrisma.$transaction([
+      systemPrisma.user.update({
         where: { email },
         data: { password: hashedPassword },
       }),
-      prisma.passwordResetToken.deleteMany({
+      systemPrisma.passwordResetToken.deleteMany({
         where: { email },
       }),
     ]);
@@ -59,3 +59,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
