@@ -222,11 +222,15 @@ export async function getLoans(projectId: string) {
 export async function getLenders() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role ?? '';
-  if (!['ADMIN', 'MANAGER'].includes(role)) {
+  const orgId = session?.user?.orgId;
+  if (!['ADMIN', 'MANAGER'].includes(role) || !orgId) {
     return { ok: false, error: 'Forbidden', data: [] };
   }
 
   const lenders = await prisma.lender.findMany({
+    where: {
+      orgId
+    },
     orderBy: { name: 'asc' },
     include: {
       loans: {

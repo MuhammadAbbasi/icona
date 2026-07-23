@@ -20,11 +20,15 @@ export type BankAccountInput = z.infer<typeof bankAccountSchema>;
 export async function getBankAccounts() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role ?? '';
-  if (!['ADMIN', 'MANAGER'].includes(role)) {
+  const orgId = session?.user?.orgId;
+  if (!['ADMIN', 'MANAGER'].includes(role) || !orgId) {
     return { ok: false, error: 'Forbidden: Admin/Manager only.', data: [] };
   }
 
   const accounts = await prisma.bankAccount.findMany({
+    where: {
+      orgId
+    },
     orderBy: { name: 'asc' },
     include: {
       transactions: {

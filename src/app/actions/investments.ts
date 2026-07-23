@@ -47,11 +47,15 @@ export type InvestorPayoutInput = z.infer<typeof payoutSchema>;
 export async function getInvestors() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role ?? '';
-  if (!['ADMIN', 'MANAGER'].includes(role)) {
+  const orgId = session?.user?.orgId;
+  if (!['ADMIN', 'MANAGER'].includes(role) || !orgId) {
     return { ok: false, error: 'Forbidden', data: [] };
   }
 
   const investors = await prisma.investor.findMany({
+    where: {
+      orgId
+    },
     orderBy: { name: 'asc' },
     include: {
       investments: {
