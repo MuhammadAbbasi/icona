@@ -74,6 +74,7 @@ export function SettingsForm() {
   const [slackWebhook, setSlackWebhook] = useState('');
   const [odooEndpoint, setOdooEndpoint] = useState('');
   const [notionToken, setNotionToken] = useState('');
+  const [syncingTgCommands, setSyncingTgCommands] = useState(false);
 
   // Company Feature Matrix Toggles
   const [orgAiCopilot, setOrgAiCopilot] = useState(true);
@@ -85,6 +86,25 @@ export function SettingsForm() {
   const [orgNotion, setOrgNotion] = useState(true);
   const [orgPrefilledModals, setOrgPrefilledModals] = useState(true);
   const [orgDeadlineEmails, setOrgDeadlineEmails] = useState(true);
+
+  const handleSyncTgCommands = async () => {
+    setSyncingTgCommands(true);
+    setSuccess('');
+    setError('');
+    try {
+      const res = await fetch('/api/telegram/commands', { method: 'POST' });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setSuccess(json.message || 'Telegram command shortcuts registered successfully!');
+      } else {
+        setError(json.message || 'Failed to sync Telegram shortcut commands.');
+      }
+    } catch {
+      setError('Network error syncing Telegram commands.');
+    } finally {
+      setSyncingTgCommands(false);
+    }
+  };
 
   useEffect(() => {
     async function loadSettings() {
@@ -1012,6 +1032,61 @@ export function SettingsForm() {
                   <p className="text-[11px] text-muted-foreground mt-1">
                     💡 <b>Telegram Tip:</b> Open <b>{tgBotUsername || '@yourbot'}</b> in Telegram and click <b>/start</b> first to grant permission, or use your numeric Telegram User ID (get it from <b>@userinfobot</b> on Telegram).
                   </p>
+                </div>
+
+                {/* Feature Shortcuts Summary & Sync Action */}
+                <div className="p-3.5 bg-slate-900 text-slate-100 rounded-lg border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-xs text-sky-400 flex items-center gap-1.5">
+                        ⚡ Telegram Chat Feature Shortcuts Menu
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Native slash commands and quick button shortcuts available for both Clients and Superadmin (ICONA Team).
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={syncingTgCommands}
+                      onClick={handleSyncTgCommands}
+                      className="bg-sky-600 hover:bg-sky-500 text-white border-none text-xs gap-1.5"
+                    >
+                      {syncingTgCommands ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Sync Shortcuts to Telegram
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] pt-1">
+                    {/* Client Shortcuts */}
+                    <div className="bg-slate-950/80 p-2.5 rounded border border-slate-800 space-y-1">
+                      <div className="font-semibold text-emerald-400">👤 Client & Staff Shortcuts:</div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-300 font-mono text-[10px]">
+                        <div><code>/projects</code> - Active Projects</div>
+                        <div><code>/finance</code> - Cash Position</div>
+                        <div><code>/tasks</code> - Pending Tasks</div>
+                        <div><code>/attendance</code> - Site Logs</div>
+                        <div><code>/boq</code> - Material Rollups</div>
+                        <div><code>/copilot</code> - AI Q&A</div>
+                      </div>
+                    </div>
+
+                    {/* Superadmin Shortcuts */}
+                    <div className="bg-slate-950/80 p-2.5 rounded border border-slate-800 space-y-1">
+                      <div className="font-semibold text-amber-400">👑 Superadmin (ICONA Team) Shortcuts:</div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-300 font-mono text-[10px]">
+                        <div><code>/admin_stats</code> - System MRR & Stats</div>
+                        <div><code>/admin_tenants</code> - Tenant List</div>
+                        <div><code>/admin_copilot</code> - LLM Status</div>
+                        <div><code>/admin_system</code> - Security Check</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
